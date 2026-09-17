@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reto: línea recta y sus ecuaciones</title>
 
-<!-- Librería para poder generar el archivo de Excel (.xlsx) directamente en el navegador.
-     No necesitas instalar nada: se carga automáticamente desde internet. -->
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<!-- Librería para generar el comprobante final en PDF, directamente en el navegador
+     (no necesitas instalar nada; se carga sola desde internet). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <!-- MathJax: hace que las ecuaciones (fracciones, exponentes, etc.) se vean en
      formato matemático real en vez de texto plano. No necesitas configurar nada
@@ -192,7 +192,7 @@
     <p>Tu calificación final es:</p>
     <div class="resultado-nota" id="texto-calificacion">--/10</div>
     <p id="texto-detalle-resultado" style="margin-top:10px;"></p>
-    <button id="btn-descargar-excel">Descargar mi comprobante en Excel</button>
+    <button id="btn-descargar-pdf">Descargar mi comprobante en PDF</button>
     <button id="btn-reenviar" class="secundario oculto">Reintentar envío a Google Sheets</button>
     <p id="texto-envio-sheets" class="mensaje-info"></p>
   </section>
@@ -225,7 +225,7 @@
      (independiente del horario general del grupo). Si se acaba, se entrega solo.
 ------------------------------------------------------------------------------------- */
 const TITULO_EXAMEN = "Reto: línea recta y sus ecuaciones";
-const DURACION_MINUTOS = 40;
+const DURACION_MINUTOS = 50;
 
 /* -------------------------------------------------------------------------------------
    PASO 2. Grupos y horarios de aplicación
@@ -243,7 +243,7 @@ const HORARIOS_GRUPOS = {
   "B": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
   "C": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
   "D": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
-  "E": { apertura: "2026-09-17T07:00", cierre: "2026-09-17T14:10" },
+  "E": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
   "F": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" }
 };
 
@@ -257,7 +257,7 @@ const HORARIOS_GRUPOS = {
      código solo reinicia el examen EN ESE DISPOSITIVO. Para llevar un control limpio,
      borra también el renglón correspondiente en la hoja de Google Sheets (ver PASO 4).
 ------------------------------------------------------------------------------------- */
-const CODIGO_REINICIO = "AUTORIZADO2026";
+const CODIGO_REINICIO = "CAMBIA-ESTE-CODIGO-2026";
 
 /* -------------------------------------------------------------------------------------
    PASO 4. Conexión con Google Sheets
@@ -285,9 +285,9 @@ const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbx22qV025wlfx
      alumno sobre el examen, para que cualquier imagen que se filtre quede
      identificada.
 ------------------------------------------------------------------------------------- */
-const SEGUNDOS_SALIDA_SIGNIFICATIVA = 2;
-const LIMITE_SALIDAS_SOSPECHOSAS = 2;
-const LIMITE_SEGUNDOS_SOSPECHOSOS = 6;
+const SEGUNDOS_SALIDA_SIGNIFICATIVA = 3;
+const LIMITE_SALIDAS_SOSPECHOSAS = 3;
+const LIMITE_SEGUNDOS_SOSPECHOSOS = 60;
 const USAR_PANTALLA_COMPLETA = true;
 
 /* -------------------------------------------------------------------------------------
@@ -398,6 +398,27 @@ const EXAMEN_B = {
 let sesionActual = null;
 let examenActivo = false;
 let horaOculto = null;
+
+/* ---------- compatibilidad de la API de pantalla completa (Chrome, Safari, etc.) ---------- */
+/* Safari (sobre todo versiones anteriores a la 16.4 en Mac, y Safari en iPad/iPhone)
+   usa nombres distintos para esta función, o de plano no la soporta en iPad/iPhone
+   (Apple no permite pantalla completa de páginas web en iOS, solo de video — esto
+   es una restricción del propio Safari en iOS, ningún sitio web puede evitarlo). */
+function pedirPantallaCompleta(){
+  const el = document.documentElement;
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if(!fn) return Promise.reject(new Error("Pantalla completa no soportada en este navegador/dispositivo."));
+  return fn.call(el);
+}
+function elementoEnPantallaCompleta(){
+  return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null;
+}
+function salirPantallaCompletaSiActiva(){
+  if(!elementoEnPantallaCompleta()) return Promise.resolve();
+  const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+  if(!fn) return Promise.resolve();
+  return fn.call(document).catch ? fn.call(document).catch(()=>{}) : Promise.resolve(fn.call(document));
+}
 let horaFueraPantallaCompleta = null;
 let intervaloCronometro = null;
 let claveSesionActual = null;
@@ -614,8 +635,8 @@ document.getElementById("form-login").addEventListener("submit", async function(
   // acción del usuario. Si se pide después de un "await" (como una llamada de red),
   // el navegador la bloquea en silencio. Por eso se solicita antes de cualquier otra
   // validación, y se revierte más abajo si el alumno termina bloqueado.
-  if(USAR_PANTALLA_COMPLETA && document.documentElement.requestFullscreen){
-    document.documentElement.requestFullscreen().catch(()=>{ /* el navegador del alumno no lo permitió; seguimos sin pantalla completa */ });
+  if(USAR_PANTALLA_COMPLETA){
+    pedirPantallaCompleta().catch(()=>{ /* el navegador/dispositivo del alumno no lo permitió (p. ej. iPad); seguimos sin pantalla completa */ });
   }
 
   const horario = HORARIOS_GRUPOS[grupo];
@@ -693,9 +714,7 @@ document.getElementById("form-login").addEventListener("submit", async function(
 });
 
 function salirDePantallaCompleta(){
-  if(document.fullscreenElement){
-    document.exitFullscreen().catch(()=>{});
-  }
+  salirPantallaCompletaSiActiva();
 }
 
 /* ---------- render y lógica del examen ---------- */
@@ -719,8 +738,8 @@ function iniciarInterfazExamen(reanudando){
 
   mostrarSoloVista("vista-examen");
 
-  if(USAR_PANTALLA_COMPLETA && document.documentElement.requestFullscreen){
-    document.documentElement.requestFullscreen().catch(()=>{ /* si el navegador lo impide, seguimos sin pantalla completa */ });
+  if(USAR_PANTALLA_COMPLETA){
+    pedirPantallaCompleta().catch(()=>{ /* si el navegador/dispositivo lo impide, seguimos sin pantalla completa */ });
   }
 
   const limiteTiempo = Math.min(sesionActual.inicio + DURACION_MINUTOS*60000, new Date(sesionActual.horarioCierre).getTime());
@@ -872,9 +891,9 @@ document.addEventListener("visibilitychange", ()=>{
 });
 
 /* ---------- sistema antifraude: salir de pantalla completa ---------- */
-document.addEventListener("fullscreenchange", ()=>{
+function manejarCambioPantallaCompleta(){
   if(!examenActivo) return;
-  if(!document.fullscreenElement){
+  if(!elementoEnPantallaCompleta()){
     horaFueraPantallaCompleta = Date.now();
     sesionActual.salidas++;
     registrarEvento(`Salida de pantalla completa #${sesionActual.salidas}.`);
@@ -890,11 +909,16 @@ document.addEventListener("fullscreenchange", ()=>{
     }
     document.getElementById("bloqueo-pantalla-completa").classList.add("oculto");
   }
+}
+// Chrome/Edge/Firefox usan "fullscreenchange"; Safari (versiones más viejas de Mac
+// e iPad, en los pocos casos donde sí soporta algo de esto) usa "webkitfullscreenchange".
+["fullscreenchange","webkitfullscreenchange","mozfullscreenchange","MSFullscreenChange"].forEach(nombreEvento=>{
+  document.addEventListener(nombreEvento, manejarCambioPantallaCompleta);
 });
 document.getElementById("btn-volver-pantalla-completa").addEventListener("click", ()=>{
   // Este clic SÍ cuenta como acción directa del alumno, así que el navegador
   // permite volver a pedir pantalla completa desde aquí.
-  document.documentElement.requestFullscreen().catch(()=>{});
+  pedirPantallaCompleta().catch(()=>{});
 });
 
 /* ---------- sistema antifraude: copiar / cortar / pegar ---------- */
@@ -970,9 +994,7 @@ function entregarExamen(autoEntregado){
   registrarEvento(autoEntregado ? "Examen entregado automáticamente (se acabó el tiempo)." : "Examen entregado por el alumno.");
   guardarSesion();
 
-  if(document.fullscreenElement){
-    document.exitFullscreen().catch(()=>{});
-  }
+  salirPantallaCompletaSiActiva();
 
   document.getElementById("texto-calificacion").textContent = `${calificacion.toFixed(1)} / 10`;
   document.getElementById("texto-detalle-resultado").textContent =
@@ -985,32 +1007,65 @@ function entregarExamen(autoEntregado){
 
 document.getElementById("btn-reenviar").addEventListener("click", enviarAGoogleSheets);
 
-/* ---------- descarga del comprobante en Excel ---------- */
-document.getElementById("btn-descargar-excel").addEventListener("click", ()=>{
-  const fila = [{
-    "Nombre completo": sesionActual.nombre,
-    "Grupo": sesionActual.grupo,
-    "Versión": sesionActual.version,
-    "Horario apertura": formatearFecha(sesionActual.horarioApertura),
-    "Horario cierre": formatearFecha(sesionActual.horarioCierre),
-    "Hora de inicio": formatearFecha(sesionActual.inicio),
-    "Hora de entrega": formatearFecha(sesionActual.horaEntrega),
-    "Tiempo usado": formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio),
-    "¿Auto-entregado?": sesionActual.autoEntregado ? "Sí" : "No",
-    "Intentos": 1,
-    "Aciertos": sesionActual.correctas,
-    "Total de preguntas": sesionActual.total,
-    "Calificación (/10)": sesionActual.calificacion,
-    "Salidas significativas": sesionActual.salidas,
-    "Tiempo fuera (segundos)": sesionActual.tiempoFueraTotal,
-    "Eventos copiar/pegar": sesionActual.eventosCopiarPegar,
-    "Bitácora": sesionActual.bitacora.join(" | "),
-    "Estado": calcularEstado(sesionActual)
-  }];
-  const hoja = XLSX.utils.json_to_sheet(fila);
-  const libro = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(libro, hoja, "Resultado");
-  XLSX.writeFile(libro, `Resultado_${normalizar(sesionActual.nombre)}_${sesionActual.grupo}.xlsx`);
+/* ---------- descarga del comprobante en PDF ---------- */
+document.getElementById("btn-descargar-pdf").addEventListener("click", ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 20;
+
+  function linea(etiqueta, valor){
+    if(y > 275){ doc.addPage(); y = 20; }
+    doc.setFontSize(11);
+    doc.setFont(undefined, "bold");
+    doc.text(String(etiqueta) + ":", 15, y);
+    doc.setFont(undefined, "normal");
+    const textoValor = doc.splitTextToSize(String(valor === undefined || valor === null ? "" : valor), 120);
+    doc.text(textoValor, 75, y);
+    y += 7 * textoValor.length;
+  }
+
+  doc.setFontSize(16);
+  doc.setFont(undefined, "bold");
+  doc.text("Comprobante de examen", 15, y);
+  y += 8;
+  doc.setFontSize(10);
+  doc.setFont(undefined, "normal");
+  doc.text(TITULO_EXAMEN, 15, y);
+  y += 12;
+
+  linea("Nombre completo", sesionActual.nombre);
+  linea("Grupo", sesionActual.grupo);
+  linea("Versión", sesionActual.version);
+  linea("Horario de apertura", formatearFecha(sesionActual.horarioApertura));
+  linea("Horario de cierre", formatearFecha(sesionActual.horarioCierre));
+  linea("Hora de inicio", formatearFecha(sesionActual.inicio));
+  linea("Hora de entrega", formatearFecha(sesionActual.horaEntrega));
+  linea("Tiempo usado", formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio));
+  linea("¿Auto-entregado?", sesionActual.autoEntregado ? "Sí" : "No");
+  linea("Intentos", 1);
+  linea("Aciertos", `${sesionActual.correctas} de ${sesionActual.total}`);
+  linea("Calificación (/10)", sesionActual.calificacion.toFixed(1));
+  linea("Salidas detectadas", sesionActual.salidas);
+  linea("Tiempo fuera (segundos)", sesionActual.tiempoFueraTotal);
+  linea("Eventos copiar/pegar", sesionActual.eventosCopiarPegar);
+  linea("Estado", calcularEstado(sesionActual));
+
+  y += 4;
+  if(y > 270){ doc.addPage(); y = 20; }
+  doc.setFontSize(11);
+  doc.setFont(undefined, "bold");
+  doc.text("Bitácora:", 15, y);
+  y += 7;
+  doc.setFontSize(9);
+  doc.setFont(undefined, "normal");
+  sesionActual.bitacora.forEach(entrada=>{
+    const envuelto = doc.splitTextToSize("• " + entrada, 180);
+    if(y + (envuelto.length*5) > 285){ doc.addPage(); y = 20; }
+    doc.text(envuelto, 15, y);
+    y += envuelto.length*5 + 2;
+  });
+
+  doc.save(`Resultado_${normalizar(sesionActual.nombre)}_${sesionActual.grupo}.pdf`);
 });
 </script>
 </body>
