@@ -3,247 +3,1015 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Circuito de Centros · Las 5 formas de la recta</title>
+<title>Reto: línea recta y sus ecuaciones</title>
+
+<!-- Librería para poder generar el archivo de Excel (.xlsx) directamente en el navegador.
+     No necesitas instalar nada: se carga automáticamente desde internet. -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<!-- MathJax: hace que las ecuaciones (fracciones, exponentes, etc.) se vean en
+     formato matemático real en vez de texto plano. No necesitas configurar nada
+     aquí; solo escribe las preguntas usando \( ... \) alrededor de cada fórmula
+     (ver ejemplos en las preguntas más abajo). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="mathjax-script"></script>
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
-
-:root{
-  --paper:#F4F6F9; --grid:#DCE3EC; --navy:#142647; --navy-soft:#3A4F76;
-  --orange:#E2552B; --orange-soft:#FBE2D8; --gold:#C9982E;
-  --locked:#A6AEBB; --locked-bg:#EBEDF1; --ink:#1C2333; --white:#FFFFFF; --radius:2px;
-}
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
-body{
-  font-family:'IBM Plex Sans', system-ui, sans-serif; color:var(--ink);
-  background:
-    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/32px 32px,
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/32px 32px,
-    var(--paper);
-  min-height:100vh; padding:28px 20px 40px;
-}
-h1,h2,h3{font-family:'Space Grotesk', system-ui, sans-serif; margin:0; color:var(--navy);}
-.eq{font-family:'IBM Plex Mono', monospace; font-weight:600;}
-
-header{
-  max-width:1180px; margin:0 auto 20px; display:flex; flex-wrap:wrap;
-  align-items:flex-end; justify-content:space-between; gap:18px;
-  border-bottom:3px solid var(--navy); padding-bottom:18px;
-}
-header h1{font-size:clamp(24px,3vw,34px); letter-spacing:-0.01em;}
-header p{margin:6px 0 0; color:var(--navy-soft); font-size:15px;}
-.status{font-size:12px; color:var(--navy-soft); display:flex; align-items:center; gap:6px;}
-.status .dotstatus{width:8px; height:8px; border-radius:50%; background:var(--orange);}
-.status.offline .dotstatus{background:var(--locked);}
-
-.track-wrap{max-width:1180px; margin:0 auto 30px; padding:20px 10px 6px;}
-.track{position:relative; height:2px; background:var(--navy); margin:0 26px;}
-.stops{display:flex; justify-content:space-between; margin:0 6px; position:relative; top:-13px;}
-.stop{display:flex; flex-direction:column; align-items:center; gap:8px;}
-.stop .dot{
-  width:26px; height:26px; border-radius:50%; background:var(--locked-bg); border:2.5px solid var(--locked);
-  display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif;
-  font-weight:700; font-size:13px; color:var(--locked); transition:.2s;
-}
-.stop.unlocked .dot{background:var(--orange); border-color:var(--orange); color:var(--white);}
-.stop .stop-label{font-size:11.5px; text-align:center; max-width:90px; color:var(--navy-soft); font-weight:500;}
-.stop.unlocked .stop-label{color:var(--navy);}
-
-main{max-width:1180px; margin:0 auto;}
-.cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:16px;}
-.card{
-  background:var(--white); border:1.5px solid var(--grid); border-left:5px solid var(--locked);
-  padding:16px 18px 18px; min-height:230px; display:flex; flex-direction:column;
-}
-.card.unlocked{border-left-color:var(--orange);}
-.card-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
-.card-head h3{font-size:15px;}
-.formula{font-size:15px; margin-bottom:10px; color:var(--navy-soft);}
-.locked-msg{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--locked); text-align:center; font-size:13px; padding:20px 0;}
-.locked-msg svg{width:26px; height:26px;}
-.context{font-size:13px; color:var(--navy-soft); margin-bottom:8px; line-height:1.45;}
-.prompt{font-size:14px; margin-bottom:10px; line-height:1.5;}
-.retro{background:var(--orange-soft); border-left:3px solid var(--orange); padding:8px 10px; font-size:13px; margin-bottom:12px; line-height:1.45;}
-.answer{margin-top:auto; padding-top:10px; border-top:1px dashed var(--grid);}
-.btn{
-  font-family:'IBM Plex Sans', sans-serif; font-size:12px; font-weight:500;
-  border:1.5px solid var(--navy); background:var(--white); color:var(--navy);
-  padding:4px 9px; cursor:pointer; border-radius:var(--radius);
-}
-.btn:hover{background:var(--navy); color:var(--white);}
-.answer-body{font-size:13.5px; margin-top:8px; line-height:1.5; display:none;}
-.answer-body.show{display:block;}
-.answer-body .eq{display:block; margin-top:4px;}
-
-.roles{max-width:1180px; margin:30px auto 0; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:10px;}
-.role{background:var(--white); border:1px solid var(--grid); padding:10px 12px; font-size:12.5px; line-height:1.4;}
-.role b{display:block; color:var(--navy); font-size:12.5px; margin-bottom:2px;}
-
-.note{max-width:1180px; margin:20px auto 0; font-size:12px; color:var(--navy-soft); line-height:1.5;}
+  :root{
+    --azul-marino:#12224a;
+    --naranja:#e8722a;
+    --dorado:#c9a227;
+    --gris-claro:#f4f5f7;
+    --gris-borde:#d7dbe2;
+    --verde-ok:#1f8a4c;
+    --rojo-alerta:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:"Segoe UI", Arial, sans-serif;
+    margin:0; padding:0;
+    background:var(--gris-claro);
+    color:#1c1c1c;
+  }
+  header{
+    background:var(--azul-marino);
+    color:#fff;
+    padding:18px 24px;
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap;
+  }
+  header h1{margin:0; font-size:1.15rem;}
+  header .franja{height:4px; background:linear-gradient(90deg,var(--naranja),var(--dorado)); width:100%; position:absolute; left:0; top:0;}
+  main{max-width:760px; margin:24px auto; padding:0 16px 60px;}
+  .tarjeta{
+    background:#fff;
+    border:1px solid var(--gris-borde);
+    border-radius:10px;
+    padding:24px;
+    margin-bottom:20px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  .oculto{display:none !important;}
+  label{display:block; font-weight:600; margin:14px 0 6px;}
+  input[type=text], input[type=password], select{
+    width:100%; padding:10px; border:1px solid var(--gris-borde); border-radius:6px; font-size:1rem;
+  }
+  button{
+    background:var(--naranja); color:#fff; border:none; border-radius:6px;
+    padding:12px 20px; font-size:1rem; font-weight:600; cursor:pointer; margin-top:16px;
+  }
+  button:hover{opacity:0.92;}
+  button.secundario{background:var(--azul-marino);}
+  .mensaje-error{color:var(--rojo-alerta); font-weight:600; margin-top:10px;}
+  .mensaje-info{color:var(--azul-marino); font-weight:600; margin-top:10px;}
+  .barra-examen{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--azul-marino); color:#fff; padding:12px 18px; border-radius:8px; margin-bottom:18px;
+    flex-wrap:wrap; gap:8px;
+  }
+  .cronometro{
+    font-size:1.3rem; font-weight:700; background:var(--naranja); padding:4px 14px; border-radius:6px;
+  }
+  .lectura{
+    background:#fdf6ea; border-left:4px solid var(--dorado); padding:14px 18px; margin-bottom:20px; border-radius:4px;
+  }
+  .pregunta{
+    border-bottom:1px solid var(--gris-borde);
+    padding:16px 0;
+  }
+  .pregunta p.enunciado{font-weight:600; margin:0 0 10px;}
+  .opcion{display:flex; align-items:center; gap:10px; margin:6px 0; padding:6px 8px; border-radius:6px;}
+  .opcion:hover{background:#f0f2f6;}
+  .opcion input{width:auto;}
+  .resultado-nota{font-size:2.2rem; font-weight:800; color:var(--azul-marino);}
+  footer{text-align:center; color:#888; font-size:0.8rem; padding:20px;}
+  .barra-progreso{width:100%; height:8px; background:var(--gris-borde); border-radius:6px; overflow:hidden;}
+  .barra-progreso-relleno{height:100%; background:linear-gradient(90deg,var(--naranja),var(--dorado)); width:0%; transition:width .25s;}
+  .contador-antifraude{
+    font-size:.78rem; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.3);
+    border-radius:6px; padding:6px 12px; text-align:center; line-height:1.4;
+  }
+  .contador-antifraude b{font-size:.95rem;}
+  .contador-antifraude.alerta{background:rgba(192,57,43,0.35); border-color:var(--rojo-alerta);}
+  .bloqueo-pantalla-completa{
+    position:fixed; inset:0; z-index:900; background:rgba(10,15,30,0.94);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .bloqueo-pantalla-completa-caja{
+    background:#fff; border-radius:10px; max-width:420px; padding:28px; text-align:center;
+  }
+  .bloqueo-pantalla-completa-caja h2{margin:0 0 12px; color:var(--rojo-alerta);}
+  .bloqueo-pantalla-completa-caja p{margin:0 0 18px; color:#444; font-size:.9rem; line-height:1.5;}
+  .panel-reinicio{margin-top:16px; border-top:1px dashed var(--gris-borde); padding-top:14px;}
+  .ayuda{font-size:0.85rem; color:#555;}
+  .marca-agua{
+    position:fixed; inset:0; z-index:500; pointer-events:none;
+    display:flex; flex-wrap:wrap; align-content:space-around; justify-content:space-around;
+    overflow:hidden; opacity:0.09;
+  }
+  .marca-agua span{
+    display:inline-block; transform:rotate(-28deg);
+    font-size:13px; font-weight:700; color:#000; white-space:nowrap; margin:26px;
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="titles">
-    <h1>Circuito de Centros</h1>
-    <p>Las 5 formas de la ecuación de la recta · Unidad 2 · Fase Sistémico</p>
-  </div>
-  <div class="status" id="status"><span class="dotstatus"></span><span id="statusText">Conectando…</span></div>
+<header><div class="franja"></div>
+  <h1 id="titulo-encabezado">Examen</h1>
+  <span id="reloj-header" style="font-size:.85rem;"></span>
 </header>
 
-<div class="track-wrap">
-  <div class="track"></div>
-  <div class="stops" id="stops"></div>
-</div>
-
 <main>
-  <div class="cards" id="cards"></div>
+
+  <!-- ============ PANTALLA 1: LOGIN ============ -->
+  <section id="vista-login" class="tarjeta">
+    <h2>Antes de empezar</h2>
+    <p>Completa tus datos. Al terminar el examen no podrás volver a presentarlo con el mismo nombre y grupo.</p>
+    <form id="form-login">
+      <label for="campo-nombre">Nombre completo</label>
+      <input type="text" id="campo-nombre" placeholder="Ej. Juan Pérez López" required>
+
+      <label for="campo-grupo">Grupo</label>
+      <select id="campo-grupo" required>
+        <option value="">-- Selecciona tu grupo --</option>
+      </select>
+
+      <button type="submit">Entrar al examen</button>
+      <p id="login-cargando" class="mensaje-info oculto">Verificando disponibilidad, espera un momento…</p>
+      <p id="login-error" class="mensaje-error oculto"></p>
+    </form>
+  </section>
+
+  <!-- ============ PANTALLA 2: BLOQUEADO / FUERA DE HORARIO / YA PRESENTADO ============ -->
+  <section id="vista-bloqueado" class="tarjeta oculto">
+    <h2>El examen no está disponible en este momento</h2>
+    <p id="mensaje-bloqueo"></p>
+    <div id="panel-reinicio" class="panel-reinicio oculto">
+      <label for="campo-codigo-reinicio">Código de reinicio (solo si tu profesor te lo indica)</label>
+      <input type="password" id="campo-codigo-reinicio" placeholder="Código proporcionado por el profesor">
+      <button id="btn-reiniciar" class="secundario">Reiniciar mi intento</button>
+      <p class="ayuda">Este código solo debe usarse si tuviste un problema técnico real (por ejemplo, se cerró el navegador sin querer) y tu profesor te autorizó a reintentar.</p>
+    </div>
+    <p id="reinicio-error" class="mensaje-error oculto"></p>
+  </section>
+
+  <!-- ============ PANTALLA 3: EXAMEN ============ -->
+  <section id="vista-examen" class="oculto">
+    <div class="barra-examen">
+      <div>
+        <div id="info-alumno" style="font-weight:600;"></div>
+        <div id="info-version" style="font-size:.85rem; opacity:.85;"></div>
+      </div>
+      <div id="contador-antifraude" class="contador-antifraude"></div>
+      <div class="cronometro" id="cronometro">--:--</div>
+    </div>
+
+    <div class="tarjeta">
+      <div id="lectura-contenedor"></div>
+
+      <div id="progreso-texto" style="font-family:monospace; font-size:.85rem; color:var(--azul-marino); font-weight:700; margin-bottom:6px;"></div>
+      <div class="barra-progreso"><div class="barra-progreso-relleno" id="barra-progreso-relleno"></div></div>
+
+      <div id="pregunta-actual-contenedor" style="margin-top:18px;"></div>
+      <p id="pregunta-error" class="mensaje-error oculto"></p>
+
+      <button id="btn-avanzar">Siguiente</button>
+      <p class="ayuda">Solo tienes un intento y no puedes regresar a una pregunta anterior una vez que avanzas. Evita salir de esta pestaña, copiar/pegar texto o tomar capturas de pantalla; estas acciones quedan registradas y tu nombre aparece marcado sobre el examen.</p>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 4: RESULTADOS ============ -->
+  <section id="vista-resultados" class="tarjeta oculto">
+    <h2>Examen entregado</h2>
+    <p>Tu calificación final es:</p>
+    <div class="resultado-nota" id="texto-calificacion">--/10</div>
+    <p id="texto-detalle-resultado" style="margin-top:10px;"></p>
+    <button id="btn-descargar-excel">Descargar mi comprobante en Excel</button>
+    <button id="btn-reenviar" class="secundario oculto">Reintentar envío a Google Sheets</button>
+    <p id="texto-envio-sheets" class="mensaje-info"></p>
+  </section>
+
 </main>
 
-<div class="roles">
-  <div class="role"><b>Coordinador</b>Organiza al equipo y controla el tiempo del centro.</div>
-  <div class="role"><b>Supervisor</b>Revisa que el procedimiento y la respuesta sean correctos.</div>
-  <div class="role"><b>Relaciones públicas</b>Explica la solución si otro equipo o el profesor pregunta.</div>
-  <div class="role"><b>Responsable de recursos</b>Cuida el material del centro y lo deja listo para el siguiente equipo.</div>
+<div class="marca-agua" id="marca-agua"></div>
+
+<div class="bloqueo-pantalla-completa oculto" id="bloqueo-pantalla-completa">
+  <div class="bloqueo-pantalla-completa-caja">
+    <h2>⚠️ Saliste de pantalla completa</h2>
+    <p>Esto quedó registrado. El examen sigue corriendo (el cronómetro no se detiene) mientras esta pantalla esté abierta.</p>
+    <button id="btn-volver-pantalla-completa">🔒 Volver a pantalla completa</button>
+  </div>
 </div>
 
-<p class="note">Esta página consulta en vivo la hoja de control del profesor. Los cambios pueden tardar hasta un minuto en reflejarse (así funciona la publicación de Google Sheets).</p>
+<footer>Sistema de examen en línea — generado para uso académico interno.</footer>
+<iframe name="marco-envio-oculto" id="marco-envio-oculto" style="display:none;" title="envio-oculto"></iframe>
 
 <script>
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSJ32ph8JJPCP4gI1r4I1d4m2QV5B36cwwkREy2D3-SXTHVy1-DtteyeNzh8Owe57tVy4dmKpz27ZsO/pub?output=csv";
+/* =====================================================================================
+   ZONA DE CONFIGURACIÓN — AQUÍ ES DONDE TÚ HACES CAMBIOS
+   No necesitas tocar nada más abajo de la línea que dice "NO EDITAR DE AQUÍ EN ADELANTE".
+   ===================================================================================== */
 
-const centros = [
-  {
-    id:1, forma:"Punto-pendiente", formula:"y − y₁ = m(x − x₁)",
-    contexto:"El ingeniero traza una rampa de acceso para sillas de ruedas. Debe tener pendiente 3/4 y pasar por el punto (4, 2), donde inicia la banqueta.",
-    prompt:"Escribe la ecuación de la rampa en forma punto-pendiente.",
-    reto:"Reto de conversión: pasa tu resultado a la forma general Ax + By + C = 0.",
-    respuesta:"y − 2 = ¾(x − 4)",
-    respuesta2:"Forma general: 3x − 4y − 4 = 0"
-  },
-  {
-    id:2, forma:"Pendiente-ordenada al origen", formula:"y = mx + b",
-    contexto:"Un taxi cobra $15 de banderazo más $8 por cada kilómetro recorrido.",
-    prompt:"Modela el costo con la forma pendiente-ordenada al origen y calcula cuánto se paga por un viaje de 12 km.",
-    reto:"Reto de conversión: ¿qué representa el valor de b en el contexto del problema?",
-    respuesta:"y = 8x + 15",
-    respuesta2:"En x = 12 → y = $111. b es el costo fijo (banderazo) antes de recorrer cualquier distancia."
-  },
-  {
-    id:3, forma:"Dos puntos", formula:"y − y₁ = (y₂−y₁)/(x₂−x₁) · (x − x₁)",
-    contexto:"Una calle recta pasa por la papelería, en (1, 2), y por la farmacia, en (5, 10).",
-    prompt:"Encuentra la ecuación de la calle usando la forma de dos puntos.",
-    reto:"Reto de conversión: verifica si el punto (3, 6) también está sobre la calle.",
-    respuesta:"m = 2  →  y − 2 = 2(x − 1)  →  y = 2x",
-    respuesta2:"En x = 3 → y = 6. Sí, (3, 6) está sobre la calle."
-  },
-  {
-    id:4, forma:"Simétrica", formula:"x/a + y/b = 1",
-    contexto:"El trazo de una ciclovía cruza la avenida principal (eje x) en x = 6 y la calle transversal (eje y) en y = 4.",
-    prompt:"Escribe la ecuación de la ciclovía en forma simétrica.",
-    reto:"Reto de conversión: pásala a la forma general.",
-    respuesta:"x/6 + y/4 = 1",
-    respuesta2:"Forma general: 2x + 3y − 12 = 0"
-  },
-  {
-    id:5, forma:"General", formula:"Ax + By + C = 0",
-    contexto:"El plano del fraccionamiento marca una barda con ecuación 5x − 2y − 10 = 0.",
-    prompt:"Encuentra dónde cruza la barda los ejes y calcula su pendiente.",
-    reto:"Reto de conversión: escribe la ecuación en forma punto-pendiente usando el intercepto con el eje x.",
-    respuesta:"Intercepto x: (2, 0)   Intercepto y: (0, −5)   m = 5/2",
-    respuesta2:"y − 0 = 5/2 (x − 2)"
-  }
-];
+/* -------------------------------------------------------------------------------------
+   PASO 1. Datos generales del examen
+   - TITULO_EXAMEN: aparece arriba de la página y en el encabezado.
+   - DURACION_MINUTOS: tiempo máximo que cada alumno tiene UNA VEZ QUE ENTRA al examen
+     (independiente del horario general del grupo). Si se acaba, se entrega solo.
+------------------------------------------------------------------------------------- */
+const TITULO_EXAMEN = "Reto: línea recta y sus ecuaciones";
+const DURACION_MINUTOS = 40;
 
-const showAnswer = {};
-centros.forEach(c => showAnswer[c.id] = false);
-let locks = {}; centros.forEach(c => locks[c.id] = false);
+/* -------------------------------------------------------------------------------------
+   PASO 2. Grupos y horarios de aplicación
+   - Escribe aquí el nombre de cada grupo (la etiqueta que verá el alumno en la lista)
+     y su horario de apertura y cierre.
+   - Formato de fecha y hora: "AAAA-MM-DDTHH:MM"  (24 horas, hora de tu computadora/servidor)
+     Ejemplo: 15 de septiembre de 2026 a las 8:00 am -> "2026-09-15T08:00"
+   - Puedes agregar, quitar o renombrar grupos libremente; solo respeta el formato.
+   - Nota: el usuario pidió "6 grupos de la A a la E"; como eso son 5 letras, aquí se
+     dejaron 6 renglones (A-F) para que tengas los 6 grupos reales. Solo cambia las
+     etiquetas ("A", "B"... ) por el nombre real de tus grupos si es distinto.
+------------------------------------------------------------------------------------- */
+const HORARIOS_GRUPOS = {
+  "A": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
+  "B": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
+  "C": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
+  "D": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
+  "E": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
+  "F": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" }
+};
 
-const stopsEl = document.getElementById('stops');
-const cardsEl = document.getElementById('cards');
-const statusEl = document.getElementById('status');
-const statusText = document.getElementById('statusText');
+/* -------------------------------------------------------------------------------------
+   PASO 3. Código maestro de reinicio
+   - Sirve para que TÚ (el profesor) puedas dejar que un alumno reintente el examen
+     en el MISMO dispositivo si tuvo un problema real (se cerró el navegador, se fue
+     la luz, etc.). El alumno debe escribir este código en la pantalla de bloqueo.
+   - Cámbialo por algo que solo tú conozcas y que no sea obvio.
+   - IMPORTANTE: si el examen ya había quedado registrado en Google Sheets, este
+     código solo reinicia el examen EN ESE DISPOSITIVO. Para llevar un control limpio,
+     borra también el renglón correspondiente en la hoja de Google Sheets (ver PASO 4).
+------------------------------------------------------------------------------------- */
+const CODIGO_REINICIO = "AUTORIZADO2026";
 
-function parseCSV(text){
-  const lines = text.trim().split(/\r?\n/);
-  const rows = lines.slice(1); // skip header
-  const result = {};
-  rows.forEach(line => {
-    const parts = line.split(',');
-    const id = parts[0] ? parts[0].trim() : null;
-    const habilitado = parts[2] ? parts[2].trim().toUpperCase() : "FALSE";
-    if(id) result[id] = habilitado === "TRUE";
+/* -------------------------------------------------------------------------------------
+   PASO 4. Conexión con Google Sheets
+   - Pega aquí la URL que obtienes al publicar el Apps Script como "aplicación web"
+     (instrucciones completas en el archivo Codigo_Google_Apps_Script.gs.txt que se
+     entrega junto con este archivo).
+   - Si dejas esto vacío (""), el examen sigue funcionando normal, solo que no se
+     enviará automáticamente a Google Sheets (el alumno solo descargará su Excel).
+------------------------------------------------------------------------------------- */
+const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbx22qV025wlfxK2GkPCnDFcyjnQ309_2KqDvPoabKmjZ_smScr_CJxHx7GL5TLdL_jy/exec";
+
+/* -------------------------------------------------------------------------------------
+   PASO 5. Umbrales del sistema antifraude
+   - SEGUNDOS_SALIDA_SIGNIFICATIVA: si el alumno sale de la pestaña menos tiempo que
+     este valor, NO se cuenta (para no penalizar parpadeos o notificaciones rápidas).
+   - LIMITE_SALIDAS_SOSPECHOSAS / LIMITE_SEGUNDOS_SOSPECHOSOS: a partir de cuántas
+     salidas o segundos fuera se marca el examen como 🚨 en el reporte.
+   - USAR_PANTALLA_COMPLETA: si es true, el sistema intenta poner el examen en
+     pantalla completa y registra si el alumno sale de ella. Si el navegador del
+     alumno no lo permite, el examen sigue funcionando normalmente (no se bloquea).
+   - Sobre capturas de pantalla: ningún sitio web puede detectar de forma 100%
+     confiable cuando alguien toma una captura (mucho menos si usan el celular
+     para fotografiar la pantalla). El sistema detecta la tecla "Impr Pant" cuando
+     el navegador lo permite, y además coloca una marca de agua con el nombre del
+     alumno sobre el examen, para que cualquier imagen que se filtre quede
+     identificada.
+------------------------------------------------------------------------------------- */
+const SEGUNDOS_SALIDA_SIGNIFICATIVA = 3;
+const LIMITE_SALIDAS_SOSPECHOSAS = 3;
+const LIMITE_SEGUNDOS_SOSPECHOSOS = 60;
+const USAR_PANTALLA_COMPLETA = true;
+
+/* -------------------------------------------------------------------------------------
+   PASO 6. Cómo se asigna la versión (A o B) a cada alumno
+   Opciones:
+   - "ALEATORIO": 50%/50% al azar quien entra (recomendado: alumnos junto a otro
+     probablemente tengan versiones distintas).
+   - "POR_GRUPO": todo el grupo A, C, E presenta la versión A; B, D, F presenta la B.
+------------------------------------------------------------------------------------- */
+const MODO_ASIGNACION_VERSION = "ALEATORIO";
+
+/* -------------------------------------------------------------------------------------
+   PASO 7. Preguntas — VERSIÓN A
+   - "lectura": texto opcional que se muestra arriba de las preguntas (puede ser un
+     planteamiento, una gráfica descrita, un contexto, etc.). Si no lo necesitas,
+     déjalo como cadena vacía: "".
+   - Cada pregunta tiene: "pregunta", un arreglo "opciones" (2 a 5 opciones) y
+     "correcta", que es la POSICIÓN de la opción correcta empezando en 0.
+     Ejemplo: si la respuesta correcta es la 2ª opción de la lista, "correcta": 1
+   - Puedes agregar más preguntas copiando un bloque { ... } completo y pegándolo
+     antes del corchete final "]".
+------------------------------------------------------------------------------------- */
+const EXAMEN_A = {
+  version: "A",
+  lectura: "",
+  preguntas: [
+    { pregunta: "Al escribir la ecuación \\(3x - 4y + 12 = 0\\) en su forma pendiente-ordenada al origen (\\(y = mx + b\\)), ¿cuál es el valor de la pendiente \\(m\\)?",
+      opciones: ["\\(\\dfrac{3}{4}\\)", "\\(-\\dfrac{4}{3}\\)", "\\(-\\dfrac{3}{4}\\)", "\\(\\dfrac{4}{3}\\)"], correcta: 0 },
+    { pregunta: "¿Cuál es la ecuación general (\\(Ax + By + C = 0\\)) de la recta que pasa por el punto \\((2, 3)\\) y tiene pendiente \\(m = -2\\)?",
+      opciones: ["\\(x + 2y - 7 = 0\\)", "\\(2x + y - 7 = 0\\)", "\\(2x - y + 7 = 0\\)", "\\(2x + y + 7 = 0\\)"], correcta: 1 },
+    { pregunta: "¿Cuál es la intersección con el eje \\(y\\) (ordenada al origen) de la recta \\(5x - 2y - 10 = 0\\)?",
+      opciones: ["\\(5\\)", "\\(2\\)", "\\(-2\\)", "\\(-5\\)"], correcta: 3 },
+    { pregunta: "¿Cuál es la ecuación pendiente-ordenada al origen de una recta con pendiente \\(2\\) y ordenada al origen \\(-3\\)?",
+      opciones: ["\\(y = -2x + 3\\)", "\\(y = 2x + 3\\)", "\\(y = 2x - 3\\)", "\\(y = 3x - 2\\)"], correcta: 2 },
+    { pregunta: "En la ecuación \\(y = -\\dfrac{1}{3}x + 4\\), ¿cuál es la pendiente de la recta?",
+      opciones: ["\\(4\\)", "\\(\\dfrac{1}{3}\\)", "\\(-4\\)", "\\(-\\dfrac{1}{3}\\)"], correcta: 3 },
+    { pregunta: "Si una recta tiene ecuación \\(y = 3x - 5\\), ¿cuál es el valor de \\(y\\) cuando \\(x = 2\\)?",
+      opciones: ["\\(6\\)", "\\(11\\)", "\\(1\\)", "\\(-1\\)"], correcta: 2 },
+    { pregunta: "¿Cuál es la ecuación punto-pendiente de la recta que pasa por el punto \\((1, 4)\\) y tiene pendiente \\(3\\)?",
+      opciones: ["\\(y - 1 = 3(x - 4)\\)", "\\(y - 4 = -3(x - 1)\\)", "\\(y + 4 = 3(x + 1)\\)", "\\(y - 4 = 3(x - 1)\\)"], correcta: 3 },
+    { pregunta: "Al convertir la ecuación punto-pendiente \\(y - 2 = 4(x - 1)\\) a su forma pendiente-ordenada al origen, se obtiene:",
+      opciones: ["\\(y = 4x + 2\\)", "\\(y = 4x - 6\\)", "\\(y = 4x - 2\\)", "\\(y = -4x - 2\\)"], correcta: 2 },
+    { pregunta: "¿Cuál es la ecuación punto-pendiente de la recta que pasa por \\((-2, 5)\\) con pendiente \\(-3\\)?",
+      opciones: ["\\(y - 5 = -3(x + 2)\\)", "\\(y + 5 = -3(x - 2)\\)", "\\(y - 5 = 3(x + 2)\\)", "\\(y - 5 = -3(x - 2)\\)"], correcta: 0 },
+    { pregunta: "¿Cuál es la pendiente de la recta que pasa por los puntos \\((1, 2)\\) y \\((5, 10)\\)?",
+      opciones: ["\\(\\dfrac{1}{2}\\)", "\\(8\\)", "\\(-2\\)", "\\(2\\)"], correcta: 3 },
+    { pregunta: "¿Cuál es la ecuación (forma pendiente-ordenada al origen) de la recta que pasa por los puntos \\((0, 1)\\) y \\((3, 7)\\)?",
+      opciones: ["\\(y = 2x - 1\\)", "\\(y = \\dfrac{1}{2}x + 1\\)", "\\(y = 2x + 1\\)", "\\(y = 3x + 1\\)"], correcta: 2 },
+    { pregunta: "Los puntos \\((1, 1)\\), \\((3, 5)\\) y \\((5, 9)\\), ¿son colineales (están sobre la misma recta)?",
+      opciones: ["Solo dos de los tres coinciden", "No se puede determinar", "No, no son colineales", "Sí, son colineales"], correcta: 3 },
+    { pregunta: "La recta \\(4x + 5y - 20 = 0\\) tiene intersecciones con los ejes en \\(x = 5\\) y \\(y = 4\\). ¿Cuál es su ecuación en forma simétrica (\\(\\dfrac{x}{a} + \\dfrac{y}{b} = 1\\))?",
+      opciones: ["\\(\\dfrac{x}{4} + \\dfrac{y}{5} = 1\\)", "\\(\\dfrac{x}{20} + \\dfrac{y}{20} = 1\\)", "\\(\\dfrac{x}{5} + \\dfrac{y}{4} = 1\\)", "\\(\\dfrac{x}{5} - \\dfrac{y}{4} = 1\\)"], correcta: 2 },
+    { pregunta: "Una recta tiene intersección con el eje \\(x\\) en \\(6\\) y con el eje \\(y\\) en \\(-3\\). ¿Cuál es su ecuación en forma simétrica?",
+      opciones: ["\\(\\dfrac{x}{6} + \\dfrac{y}{3} = 1\\)", "\\(\\dfrac{x}{6} + \\dfrac{y}{-3} = 1\\)", "\\(\\dfrac{x}{-3} + \\dfrac{y}{6} = 1\\)", "\\(\\dfrac{x}{3} - \\dfrac{y}{6} = 1\\)"], correcta: 1 },
+    { pregunta: "Al convertir la ecuación simétrica \\(\\dfrac{x}{4} + \\dfrac{y}{2} = 1\\) a su forma general (\\(Ax + By + C = 0\\)), se obtiene:",
+      opciones: ["\\(2x + y - 4 = 0\\)", "\\(x + 2y + 4 = 0\\)", "\\(4x + 2y - 1 = 0\\)", "\\(x + 2y - 4 = 0\\)"], correcta: 3 }
+  ]
+};
+
+/* -------------------------------------------------------------------------------------
+   PASO 8. Preguntas — VERSIÓN B
+   (mismos 15 temas que la versión A, en el mismo orden, con valores numéricos distintos)
+------------------------------------------------------------------------------------- */
+const EXAMEN_B = {
+  version: "B",
+  lectura: "",
+  preguntas: [
+    { pregunta: "Al escribir la ecuación \\(2x - 5y + 15 = 0\\) en su forma pendiente-ordenada al origen (\\(y = mx + b\\)), ¿cuál es el valor de la pendiente \\(m\\)?",
+      opciones: ["\\(\\dfrac{2}{5}\\)", "\\(-\\dfrac{5}{2}\\)", "\\(-\\dfrac{2}{5}\\)", "\\(\\dfrac{5}{2}\\)"], correcta: 0 },
+    { pregunta: "¿Cuál es la ecuación general (\\(Ax + By + C = 0\\)) de la recta que pasa por el punto \\((3, -1)\\) y tiene pendiente \\(m = -4\\)?",
+      opciones: ["\\(x + 4y - 11 = 0\\)", "\\(4x + y - 11 = 0\\)", "\\(4x - y + 11 = 0\\)", "\\(4x + y + 11 = 0\\)"], correcta: 1 },
+    { pregunta: "¿Cuál es la intersección con el eje \\(y\\) (ordenada al origen) de la recta \\(3x - 6y - 18 = 0\\)?",
+      opciones: ["\\(3\\)", "\\(6\\)", "\\(-6\\)", "\\(-3\\)"], correcta: 3 },
+    { pregunta: "¿Cuál es la ecuación pendiente-ordenada al origen de una recta con pendiente \\(-4\\) y ordenada al origen \\(5\\)?",
+      opciones: ["\\(y = 4x - 5\\)", "\\(y = -4x - 5\\)", "\\(y = -4x + 5\\)", "\\(y = 5x - 4\\)"], correcta: 2 },
+    { pregunta: "En la ecuación \\(y = \\dfrac{2}{5}x - 6\\), ¿cuál es la pendiente de la recta?",
+      opciones: ["\\(-6\\)", "\\(\\dfrac{2}{5}\\)", "\\(6\\)", "\\(-\\dfrac{2}{5}\\)"], correcta: 1 },
+    { pregunta: "Si una recta tiene ecuación \\(y = -2x + 7\\), ¿cuál es el valor de \\(y\\) cuando \\(x = 3\\)?",
+      opciones: ["\\(13\\)", "\\(-6\\)", "\\(1\\)", "\\(-13\\)"], correcta: 2 },
+    { pregunta: "¿Cuál es la ecuación punto-pendiente de la recta que pasa por el punto \\((2, -3)\\) y tiene pendiente \\(5\\)?",
+      opciones: ["\\(y - 3 = 5(x + 2)\\)", "\\(y + 2 = 5(x + 3)\\)", "\\(y + 3 = -5(x - 2)\\)", "\\(y + 3 = 5(x - 2)\\)"], correcta: 3 },
+    { pregunta: "Al convertir la ecuación punto-pendiente \\(y - 5 = 2(x - 3)\\) a su forma pendiente-ordenada al origen, se obtiene:",
+      opciones: ["\\(y = 2x + 1\\)", "\\(y = 2x - 11\\)", "\\(y = -2x - 1\\)", "\\(y = 2x - 1\\)"], correcta: 3 },
+    { pregunta: "¿Cuál es la ecuación punto-pendiente de la recta que pasa por \\((-1, -4)\\) con pendiente \\(-2\\)?",
+      opciones: ["\\(y + 4 = -2(x + 1)\\)", "\\(y - 4 = -2(x - 1)\\)", "\\(y + 4 = 2(x + 1)\\)", "\\(y + 4 = -2(x - 1)\\)"], correcta: 0 },
+    { pregunta: "¿Cuál es la pendiente de la recta que pasa por los puntos \\((2, 3)\\) y \\((6, 11)\\)?",
+      opciones: ["\\(\\dfrac{1}{2}\\)", "\\(4\\)", "\\(-2\\)", "\\(2\\)"], correcta: 3 },
+    { pregunta: "¿Cuál es la ecuación (forma pendiente-ordenada al origen) de la recta que pasa por los puntos \\((0, -2)\\) y \\((4, 6)\\)?",
+      opciones: ["\\(y = 2x + 2\\)", "\\(y = \\dfrac{1}{2}x - 2\\)", "\\(y = -2x - 2\\)", "\\(y = 2x - 2\\)"], correcta: 3 },
+    { pregunta: "Los puntos \\((2, 4)\\), \\((4, 8)\\) y \\((6, 12)\\), ¿son colineales (están sobre la misma recta)?",
+      opciones: ["No, no son colineales", "Solo dos de los tres coinciden", "No se puede determinar", "Sí, son colineales"], correcta: 3 },
+    { pregunta: "La recta \\(3x + 4y - 24 = 0\\) tiene intersecciones con los ejes en \\(x = 8\\) y \\(y = 6\\). ¿Cuál es su ecuación en forma simétrica (\\(\\dfrac{x}{a} + \\dfrac{y}{b} = 1\\))?",
+      opciones: ["\\(\\dfrac{x}{6} + \\dfrac{y}{8} = 1\\)", "\\(\\dfrac{x}{24} + \\dfrac{y}{24} = 1\\)", "\\(\\dfrac{x}{8} - \\dfrac{y}{6} = 1\\)", "\\(\\dfrac{x}{8} + \\dfrac{y}{6} = 1\\)"], correcta: 3 },
+    { pregunta: "Una recta tiene intersección con el eje \\(x\\) en \\(4\\) y con el eje \\(y\\) en \\(-8\\). ¿Cuál es su ecuación en forma simétrica?",
+      opciones: ["\\(\\dfrac{x}{4} + \\dfrac{y}{8} = 1\\)", "\\(\\dfrac{x}{4} + \\dfrac{y}{-8} = 1\\)", "\\(\\dfrac{x}{-8} + \\dfrac{y}{4} = 1\\)", "\\(\\dfrac{x}{8} - \\dfrac{y}{4} = 1\\)"], correcta: 1 },
+    { pregunta: "Al convertir la ecuación simétrica \\(\\dfrac{x}{6} + \\dfrac{y}{3} = 1\\) a su forma general (\\(Ax + By + C = 0\\)), se obtiene:",
+      opciones: ["\\(2x + y - 6 = 0\\)", "\\(x + 2y + 6 = 0\\)", "\\(6x + 3y - 1 = 0\\)", "\\(x + 2y - 6 = 0\\)"], correcta: 3 }
+  ]
+};
+
+
+/* =====================================================================================
+   NO EDITAR DE AQUÍ EN ADELANTE — motor del sistema.
+   (Si sabes programar y quieres ajustar el comportamiento, adelante; si no, no hace
+   falta tocar nada de lo que sigue para que el examen funcione).
+   ===================================================================================== */
+
+let sesionActual = null;
+let examenActivo = false;
+let horaOculto = null;
+let horaFueraPantallaCompleta = null;
+let intervaloCronometro = null;
+let claveSesionActual = null;
+
+document.getElementById("titulo-encabezado").textContent = TITULO_EXAMEN;
+
+/* ---------- utilidades ---------- */
+function normalizar(txt){
+  return (txt || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/\s+/g,"_");
+}
+function claveAlumno(nombre, grupo){
+  return `examen_recta_${normalizar(grupo)}_${normalizar(nombre)}`;
+}
+function formatearFecha(valor){
+  if(!valor) return "";
+  const f = new Date(valor);
+  return f.toLocaleString("es-MX", {dateStyle:"short", timeStyle:"short"});
+}
+function formatearDuracionMs(ms){
+  const totalSeg = Math.max(0, Math.round(ms/1000));
+  const min = Math.floor(totalSeg/60);
+  const seg = totalSeg%60;
+  return `${min}:${seg.toString().padStart(2,"0")}`;
+}
+function mostrarSoloVista(idVista){
+  ["vista-login","vista-bloqueado","vista-examen","vista-resultados"].forEach(id=>{
+    document.getElementById(id).classList.toggle("oculto", id!==idVista);
   });
-  return result;
+}
+function actualizarRelojHeader(){
+  document.getElementById("reloj-header").textContent = new Date().toLocaleString("es-MX");
+}
+setInterval(actualizarRelojHeader, 1000);
+actualizarRelojHeader();
+
+/* ---------- construir lista de grupos ---------- */
+(function poblarGrupos(){
+  const select = document.getElementById("campo-grupo");
+  Object.keys(HORARIOS_GRUPOS).forEach(grupo=>{
+    const opcion = document.createElement("option");
+    opcion.value = grupo;
+    opcion.textContent = `Grupo ${grupo}`;
+    select.appendChild(opcion);
+  });
+})();
+
+/* ---------- guardar / leer sesión en localStorage ---------- */
+function guardarSesion(){
+  if(claveSesionActual && sesionActual){
+    localStorage.setItem(claveSesionActual, JSON.stringify(sesionActual));
+  }
+}
+function registrarEvento(texto){
+  if(!sesionActual) return;
+  const hora = new Date().toLocaleTimeString("es-MX");
+  sesionActual.bitacora.push(`${hora} — ${texto}`);
+  guardarSesion();
+  actualizarContadorVisible();
+}
+function actualizarContadorVisible(){
+  const elemento = document.getElementById("contador-antifraude");
+  if(!elemento || !sesionActual || !examenActivo) return;
+  const salidas = sesionActual.salidas || 0;
+  // Nota: las capturas de pantalla SÍ se siguen contando y registrando (bitácora,
+  // Excel y Google Sheets), simplemente ya no se le muestra el número al alumno.
+  elemento.innerHTML = `👁 Salidas detectadas: <b>${salidas}</b>`;
+  elemento.classList.toggle("alerta", salidas > 0);
 }
 
-async function fetchState(){
+/* ---------- elegir versión ---------- */
+function elegirVersion(grupo){
+  if(MODO_ASIGNACION_VERSION === "POR_GRUPO"){
+    const llaves = Object.keys(HORARIOS_GRUPOS);
+    const indice = llaves.indexOf(grupo);
+    return (indice % 2 === 0) ? "A" : "B";
+  }
+  return Math.random() < 0.5 ? "A" : "B";
+}
+function datosExamenPorVersion(version){
+  return version === "A" ? EXAMEN_A : EXAMEN_B;
+}
+
+/* ---------- verificación en servidor (Google Sheets) de intentos previos ---------- */
+async function verificarEnvioPrevio(nombre, grupo){
+  if(!URL_GOOGLE_SHEETS) return false;
   try{
-    const res = await fetch(SHEET_CSV_URL + "&cachebust=" + Date.now(), { cache: "no-store" });
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    locks = parseCSV(text);
-    statusEl.classList.remove('offline');
-    statusText.textContent = "Conectado";
-  } catch(e){
-    statusEl.classList.add('offline');
-    statusText.textContent = "Sin conexión, mostrando último estado";
+    const controlador = new AbortController();
+    const limite = setTimeout(()=>controlador.abort(), 5000);
+    const url = `${URL_GOOGLE_SHEETS}?accion=verificar&nombre=${encodeURIComponent(nombre)}&grupo=${encodeURIComponent(grupo)}`;
+    const respuesta = await fetch(url, {signal: controlador.signal});
+    clearTimeout(limite);
+    const datos = await respuesta.json();
+    return !!datos.yaPresentado;
+  }catch(err){
+    // Si falla la verificación (sin internet, script mal configurado, etc.)
+    // NO bloqueamos al alumno por un problema técnico ajeno a él.
+    return false;
   }
-  render();
 }
 
-function render(){
-  stopsEl.innerHTML = centros.map(c => `
-    <div class="stop ${locks[c.id] ? 'unlocked' : ''}">
-      <span class="dot">${c.id}</span>
-      <span class="stop-label">${c.forma}</span>
-    </div>
-  `).join('');
+/* ---------- envío del registro final a Google Sheets ---------- */
+function enviarAGoogleSheets(){
+  const aviso = document.getElementById("texto-envio-sheets");
+  const btnReenviar = document.getElementById("btn-reenviar");
+  if(!URL_GOOGLE_SHEETS){
+    aviso.textContent = "⚠️ No se configuró la conexión a Google Sheets; el registro quedó guardado solo en este dispositivo. Descarga el Excel y entrégalo a tu profesor.";
+    return;
+  }
+  aviso.textContent = "Enviando tu registro a la hoja de control…";
+  try{
+    // Técnica de formulario oculto: es la forma más confiable de enviar datos a
+    // Google Apps Script desde una página sencilla, evita bloqueos de seguridad
+    // del navegador que a veces impiden que "fetch" complete el envío.
+    const iframe = document.getElementById("marco-envio-oculto");
+    const formulario = document.createElement("form");
+    formulario.method = "POST";
+    formulario.action = URL_GOOGLE_SHEETS;
+    formulario.target = "marco-envio-oculto";
+    formulario.style.display = "none";
 
-  cardsEl.innerHTML = centros.map(c => {
-    const unlocked = locks[c.id];
-    if(!unlocked){
-      return `
-        <div class="card">
-          <div class="card-head">
-            <h3>Centro ${c.id} · ${c.forma}</h3>
-            <span class="eq">${c.formula}</span>
-          </div>
-          <div class="locked-msg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
-            Bloqueado — esperando al profesor
-          </div>
-        </div>`;
+    const campo = document.createElement("input");
+    campo.type = "hidden";
+    campo.name = "payload";
+    campo.value = JSON.stringify(construirPayload());
+    formulario.appendChild(campo);
+
+    document.body.appendChild(formulario);
+    formulario.submit();
+    setTimeout(()=>{ document.body.removeChild(formulario); }, 3000);
+
+    aviso.textContent = "✅ Registro enviado a la hoja de control.";
+    btnReenviar.classList.add("oculto");
+  }catch(err){
+    aviso.textContent = "🚨 No se pudo enviar el registro a Google Sheets. Descarga tu Excel como respaldo y usa el botón para reintentar.";
+    btnReenviar.classList.remove("oculto");
+  }
+}
+function construirPayload(){
+  return {
+    nombre: sesionActual.nombre,
+    grupo: sesionActual.grupo,
+    version: sesionActual.version,
+    horarioApertura: formatearFecha(sesionActual.horarioApertura),
+    horarioCierre: formatearFecha(sesionActual.horarioCierre),
+    horaInicio: formatearFecha(sesionActual.inicio),
+    horaEntrega: formatearFecha(sesionActual.horaEntrega),
+    tiempoUsado: formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio),
+    autoEntregado: sesionActual.autoEntregado ? "Sí" : "No",
+    intentos: 1,
+    aciertos: sesionActual.correctas,
+    totalPreguntas: sesionActual.total,
+    calificacion: sesionActual.calificacion,
+    salidasSignificativas: sesionActual.salidas,
+    tiempoFueraSegundos: sesionActual.tiempoFueraTotal,
+    eventosCopiarPegar: sesionActual.eventosCopiarPegar,
+    capturasDetectadas: sesionActual.capturasDetectadas || 0,
+    bitacora: sesionActual.bitacora.join(" | "),
+    estado: calcularEstado(sesionActual)
+  };
+}
+function calcularEstado(sesion){
+  const capturas = sesion.capturasDetectadas || 0;
+  if(sesion.salidas >= LIMITE_SALIDAS_SOSPECHOSAS || sesion.tiempoFueraTotal >= LIMITE_SEGUNDOS_SOSPECHOSOS || sesion.eventosCopiarPegar > 0 || capturas > 0){
+    return "🚨 Sospechoso";
+  }
+  if(sesion.salidas >= 1 || sesion.tiempoFueraTotal > 0){
+    return "⚠️ Revisar";
+  }
+  return "✅ Normal";
+}
+
+/* ---------- pantalla de bloqueo ---------- */
+function mostrarBloqueo(mensaje, conReinicio=false){
+  document.getElementById("mensaje-bloqueo").textContent = mensaje;
+  document.getElementById("panel-reinicio").classList.toggle("oculto", !conReinicio);
+  document.getElementById("reinicio-error").classList.add("oculto");
+  mostrarSoloVista("vista-bloqueado");
+}
+
+document.getElementById("btn-reiniciar").addEventListener("click", ()=>{
+  const codigo = document.getElementById("campo-codigo-reinicio").value.trim();
+  const errorTexto = document.getElementById("reinicio-error");
+  if(codigo !== CODIGO_REINICIO){
+    errorTexto.textContent = "Código incorrecto. Pídele el código correcto a tu profesor.";
+    errorTexto.classList.remove("oculto");
+    return;
+  }
+  if(claveSesionActual){
+    localStorage.removeItem(claveSesionActual);
+  }
+  errorTexto.classList.add("oculto");
+  document.getElementById("form-login").reset();
+  mostrarSoloVista("vista-login");
+});
+
+/* ---------- login ---------- */
+document.getElementById("form-login").addEventListener("submit", async function(evento){
+  evento.preventDefault();
+  const errorLogin = document.getElementById("login-error");
+  const cargando = document.getElementById("login-cargando");
+  errorLogin.classList.add("oculto");
+
+  const nombre = document.getElementById("campo-nombre").value.trim();
+  const grupo = document.getElementById("campo-grupo").value;
+
+  if(!nombre || !grupo){
+    errorLogin.textContent = "Completa tu nombre y grupo antes de continuar.";
+    errorLogin.classList.remove("oculto");
+    return;
+  }
+
+  // IMPORTANTE: la pantalla completa se pide AQUÍ, de inmediato, dentro del mismo
+  // clic del botón — los navegadores solo la permiten como reacción directa a una
+  // acción del usuario. Si se pide después de un "await" (como una llamada de red),
+  // el navegador la bloquea en silencio. Por eso se solicita antes de cualquier otra
+  // validación, y se revierte más abajo si el alumno termina bloqueado.
+  if(USAR_PANTALLA_COMPLETA && document.documentElement.requestFullscreen){
+    document.documentElement.requestFullscreen().catch(()=>{ /* el navegador del alumno no lo permitió; seguimos sin pantalla completa */ });
+  }
+
+  const horario = HORARIOS_GRUPOS[grupo];
+  const ahora = new Date();
+  const apertura = new Date(horario.apertura);
+  const cierre = new Date(horario.cierre);
+
+  if(ahora < apertura){
+    mostrarBloqueo(`El examen para el grupo ${grupo} abrirá el ${formatearFecha(horario.apertura)}. Vuelve a intentarlo en ese horario.`);
+    salirDePantallaCompleta();
+    return;
+  }
+  if(ahora > cierre){
+    mostrarBloqueo(`El examen para el grupo ${grupo} cerró el ${formatearFecha(horario.cierre)}. Contacta a tu profesor si tienes dudas.`);
+    salirDePantallaCompleta();
+    return;
+  }
+
+  const clave = claveAlumno(nombre, grupo);
+  const guardado = localStorage.getItem(clave);
+
+  if(guardado){
+    const sesionGuardada = JSON.parse(guardado);
+    if(sesionGuardada.estado === "completado"){
+      claveSesionActual = clave;
+      mostrarBloqueo("Este examen ya fue presentado con este nombre y grupo en este dispositivo. No es posible volver a presentarlo.", true);
+      salirDePantallaCompleta();
+      return;
     }
-    return `
-      <div class="card unlocked">
-        <div class="card-head"><h3>Centro ${c.id} · ${c.forma}</h3></div>
-        <div class="formula eq">${c.formula}</div>
-        <div class="context">${c.contexto}</div>
-        <div class="prompt"><b>${c.prompt}</b></div>
-        <div class="retro">${c.reto}</div>
-        <div class="answer">
-          <button class="btn" data-answer="${c.id}">${showAnswer[c.id] ? 'Ocultar respuesta' : 'Mostrar respuesta'}</button>
-          <div class="answer-body ${showAnswer[c.id] ? 'show' : ''}">
-            <span class="eq">${c.respuesta}</span>
-            <span class="eq">${c.respuesta2}</span>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
+    // había un intento en progreso (por ejemplo, se cerró el navegador sin querer)
+    const limiteTiempo = Math.min(sesionGuardada.inicio + DURACION_MINUTOS*60000, cierre.getTime());
+    if(Date.now() < limiteTiempo){
+      claveSesionActual = clave;
+      sesionActual = sesionGuardada;
+      iniciarInterfazExamen(true);
+      return;
+    } else {
+      // el tiempo ya se venció mientras estaba cerrado: se entrega automáticamente
+      claveSesionActual = clave;
+      sesionActual = sesionGuardada;
+      entregarExamen(true);
+      salirDePantallaCompleta();
+      return;
+    }
+  }
 
-  document.querySelectorAll('[data-answer]').forEach(el => {
-    el.onclick = e => {
-      const id = e.target.getAttribute('data-answer');
-      showAnswer[id] = !showAnswer[id];
-      render();
-    };
-  });
+  // Verificación opcional en Google Sheets por si el alumno cambió de dispositivo.
+  cargando.classList.remove("oculto");
+  const yaPresentadoServidor = await verificarEnvioPrevio(nombre, grupo);
+  cargando.classList.add("oculto");
+  if(yaPresentadoServidor){
+    claveSesionActual = clave;
+    mostrarBloqueo("Según nuestros registros, ya presentaste este examen (posiblemente desde otro dispositivo). No es posible volver a presentarlo.", true);
+    salirDePantallaCompleta();
+    return;
+  }
+
+  const version = elegirVersion(grupo);
+  claveSesionActual = clave;
+  sesionActual = {
+    nombre, grupo, version,
+    horarioApertura: horario.apertura,
+    horarioCierre: horario.cierre,
+    inicio: Date.now(),
+    respuestas: [],
+    salidas: 0,
+    tiempoFueraTotal: 0,
+    eventosCopiarPegar: 0,
+    capturasDetectadas: 0,
+    bitacora: [`${new Date().toLocaleTimeString("es-MX")} — Examen iniciado (versión ${version})`],
+    estado: "en_progreso"
+  };
+  guardarSesion();
+  iniciarInterfazExamen(false);
+});
+
+function salirDePantallaCompleta(){
+  if(document.fullscreenElement){
+    document.exitFullscreen().catch(()=>{});
+  }
 }
 
-fetchState();
-setInterval(fetchState, 4000);
+/* ---------- render y lógica del examen ---------- */
+function iniciarInterfazExamen(reanudando){
+  examenActivo = true;
+  const datos = datosExamenPorVersion(sesionActual.version);
+
+  document.getElementById("info-alumno").textContent = `${sesionActual.nombre} — Grupo ${sesionActual.grupo}`;
+  document.getElementById("info-version").textContent = `Versión ${sesionActual.version}${reanudando ? " (intento reanudado)" : ""}`;
+  actualizarContadorVisible();
+
+  const lecturaDiv = document.getElementById("lectura-contenedor");
+  lecturaDiv.innerHTML = "";
+  if(datos.lectura && datos.lectura.trim() !== ""){
+    const bloque = document.createElement("div");
+    bloque.className = "lectura";
+    bloque.innerHTML = datos.lectura;
+    lecturaDiv.appendChild(bloque);
+    renderizarMath(bloque);
+  }
+
+  mostrarSoloVista("vista-examen");
+
+  if(USAR_PANTALLA_COMPLETA && document.documentElement.requestFullscreen){
+    document.documentElement.requestFullscreen().catch(()=>{ /* si el navegador lo impide, seguimos sin pantalla completa */ });
+  }
+
+  const limiteTiempo = Math.min(sesionActual.inicio + DURACION_MINUTOS*60000, new Date(sesionActual.horarioCierre).getTime());
+  iniciarCronometro(limiteTiempo);
+  iniciarMarcaAgua();
+
+  if(typeof sesionActual.preguntaActual !== "number") sesionActual.preguntaActual = 0;
+  renderPreguntaActual();
+}
+
+/* ---------- una pregunta a la vez, sin poder regresar a la anterior ---------- */
+function renderPreguntaActual(){
+  const datos = datosExamenPorVersion(sesionActual.version);
+  const total = datos.preguntas.length;
+  const indice = sesionActual.preguntaActual;
+  const pregunta = datos.preguntas[indice];
+
+  document.getElementById("progreso-texto").textContent = `Pregunta ${indice+1} de ${total}`;
+  document.getElementById("barra-progreso-relleno").style.width = `${Math.round((indice/total)*100)}%`;
+  document.getElementById("pregunta-error").classList.add("oculto");
+
+  const contenedor = document.getElementById("pregunta-actual-contenedor");
+  contenedor.innerHTML = "";
+
+  const div = document.createElement("div");
+  div.className = "pregunta";
+  const p = document.createElement("p");
+  p.className = "enunciado";
+  p.innerHTML = `${indice+1}. ${pregunta.pregunta}`;
+  div.appendChild(p);
+
+  pregunta.opciones.forEach((opcionTexto, indiceOpcion)=>{
+    const fila = document.createElement("label");
+    fila.className = "opcion";
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = `pregunta_actual`;
+    radio.value = indiceOpcion;
+    if(sesionActual.respuestas[indice] === indiceOpcion) radio.checked = true;
+    radio.addEventListener("change", ()=>{
+      sesionActual.respuestas[indice] = indiceOpcion;
+      guardarSesion();
+    });
+    fila.appendChild(radio);
+    const span = document.createElement("span");
+    span.innerHTML = opcionTexto;
+    fila.appendChild(span);
+    div.appendChild(fila);
+  });
+  contenedor.appendChild(div);
+  renderizarMath(contenedor);
+
+  const btn = document.getElementById("btn-avanzar");
+  btn.textContent = (indice === total - 1) ? "Entregar examen" : "Siguiente";
+}
+function renderizarMath(elemento){
+  if(window.MathJax && window.MathJax.typesetPromise){
+    window.MathJax.typesetPromise([elemento]).catch(()=>{ /* si algo falla, la pregunta se sigue viendo, solo sin formato matemático */ });
+  }
+}
+
+document.getElementById("btn-avanzar").addEventListener("click", ()=>{
+  const datos = datosExamenPorVersion(sesionActual.version);
+  const total = datos.preguntas.length;
+  const indice = sesionActual.preguntaActual;
+
+  if(sesionActual.respuestas[indice] === undefined || sesionActual.respuestas[indice] === null){
+    const error = document.getElementById("pregunta-error");
+    error.textContent = "Selecciona una opción antes de continuar. No podrás regresar a esta pregunta después.";
+    error.classList.remove("oculto");
+    return;
+  }
+
+  if(indice === total - 1){
+    if(confirm("¿Seguro que quieres entregar el examen? No podrás modificarlo después.")){
+      entregarExamen(false);
+    }
+    return;
+  }
+
+  sesionActual.preguntaActual = indice + 1;
+  guardarSesion();
+  renderPreguntaActual();
+});
+
+/* ---------- marca de agua con los datos del alumno (disuasivo/rastreo de capturas) ---------- */
+let intervaloMarcaAgua = null;
+function textoMarcaAgua(){
+  const hora = new Date().toLocaleString("es-MX", {dateStyle:"short", timeStyle:"medium"});
+  return `${sesionActual.nombre} · Grupo ${sesionActual.grupo} · ${hora}`;
+}
+function dibujarMarcaAgua(){
+  const contenedor = document.getElementById("marca-agua");
+  const texto = textoMarcaAgua();
+  contenedor.innerHTML = "";
+  for(let i=0; i<40; i++){
+    const span = document.createElement("span");
+    span.textContent = texto;
+    contenedor.appendChild(span);
+  }
+}
+function iniciarMarcaAgua(){
+  dibujarMarcaAgua();
+  if(intervaloMarcaAgua) clearInterval(intervaloMarcaAgua);
+  // Se vuelve a dibujar cada 20 segundos para que la hora quede siempre visible.
+  intervaloMarcaAgua = setInterval(dibujarMarcaAgua, 20000);
+}
+function detenerMarcaAgua(){
+  if(intervaloMarcaAgua) clearInterval(intervaloMarcaAgua);
+  document.getElementById("marca-agua").innerHTML = "";
+}
+
+function iniciarCronometro(limiteTiempo){
+  if(intervaloCronometro) clearInterval(intervaloCronometro);
+  function actualizar(){
+    const restanteMs = limiteTiempo - Date.now();
+    const elemento = document.getElementById("cronometro");
+    if(restanteMs <= 0){
+      elemento.textContent = "0:00";
+      clearInterval(intervaloCronometro);
+      entregarExamen(true);
+      return;
+    }
+    elemento.textContent = formatearDuracionMs(restanteMs);
+  }
+  actualizar();
+  intervaloCronometro = setInterval(actualizar, 1000);
+}
+
+/* ---------- sistema antifraude: cambios de pestaña/ventana ---------- */
+document.addEventListener("visibilitychange", ()=>{
+  if(!examenActivo) return;
+  if(document.hidden){
+    horaOculto = Date.now();
+  } else if(horaOculto){
+    const segundosFuera = Math.round((Date.now() - horaOculto)/1000);
+    horaOculto = null;
+    if(segundosFuera >= SEGUNDOS_SALIDA_SIGNIFICATIVA){
+      sesionActual.salidas++;
+      sesionActual.tiempoFueraTotal += segundosFuera;
+      registrarEvento(`Salida de la pestaña #${sesionActual.salidas}: ${segundosFuera} segundos fuera.`);
+      // Advertencia visible: se muestra apenas el alumno regresa (mientras estuvo
+      // fuera no había forma de mostrarle nada, ya que no estaba viendo la página).
+      setTimeout(()=>{
+        alert(`⚠️ Se detectó que saliste de esta pestaña (salida #${sesionActual.salidas}, ${segundosFuera} segundos fuera).\n\nEsto ha quedado registrado y será revisado por tu profesor.`);
+      }, 150);
+    }
+  }
+});
+
+/* ---------- sistema antifraude: salir de pantalla completa ---------- */
+document.addEventListener("fullscreenchange", ()=>{
+  if(!examenActivo) return;
+  if(!document.fullscreenElement){
+    horaFueraPantallaCompleta = Date.now();
+    sesionActual.salidas++;
+    registrarEvento(`Salida de pantalla completa #${sesionActual.salidas}.`);
+    if(USAR_PANTALLA_COMPLETA){
+      document.getElementById("bloqueo-pantalla-completa").classList.remove("oculto");
+    }
+  } else {
+    if(horaFueraPantallaCompleta){
+      const segundosFuera = Math.round((Date.now() - horaFueraPantallaCompleta)/1000);
+      sesionActual.tiempoFueraTotal += segundosFuera;
+      horaFueraPantallaCompleta = null;
+      registrarEvento(`Regresó a pantalla completa después de ${segundosFuera} segundos fuera.`);
+    }
+    document.getElementById("bloqueo-pantalla-completa").classList.add("oculto");
+  }
+});
+document.getElementById("btn-volver-pantalla-completa").addEventListener("click", ()=>{
+  // Este clic SÍ cuenta como acción directa del alumno, así que el navegador
+  // permite volver a pedir pantalla completa desde aquí.
+  document.documentElement.requestFullscreen().catch(()=>{});
+});
+
+/* ---------- sistema antifraude: copiar / cortar / pegar ---------- */
+["copy","cut","paste"].forEach(tipoEvento=>{
+  document.addEventListener(tipoEvento, ()=>{
+    if(!examenActivo) return;
+    sesionActual.eventosCopiarPegar++;
+    registrarEvento(`Evento sospechoso detectado: ${tipoEvento}.`);
+  });
+});
+
+/* ---------- sistema antifraude: tecla de captura de pantalla ---------- */
+/* AVISO IMPORTANTE Y HONESTO: en la mayoría de navegadores (especialmente Chrome
+   en Windows), el sistema operativo intercepta la tecla "Impr Pant" ANTES de que
+   llegue a la página — es decir, JavaScript nunca se entera de que se presionó.
+   Esto no es una falla de este código: ningún sitio web puede evitarlo. Por eso
+   la marca de agua (ver iniciarMarcaAgua) sigue siendo la protección real: si el
+   alumno logra tomar una captura o foto, esa imagen queda identificada con su
+   nombre. Lo de aquí abajo es un extra que atrapa el evento SOLO en los casos
+   (algunos navegadores/versiones) donde sí llega a alcanzar a la página. */
+let ultimaCapturaDetectadaMs = 0;
+function posibleCaptura(evento){
+  if(!examenActivo) return;
+
+  const esImprPant = evento.key === "PrintScreen";
+  // Windows + Shift + S (Recorte y anotación / Snipping). El navegador rara vez
+  // recibe la tecla Windows como modificador confiable, por eso solo exigimos
+  // Shift + S. Puede dar algún falso positivo si el alumno escribe una "S"
+  // mayúscula normal, pero en un examen de opción múltiple eso no ocurre.
+  const esSnipWindows = evento.shiftKey && (evento.key === "S" || evento.key === "s");
+  // macOS: Cmd+Shift+3 (pantalla completa), Cmd+Shift+4 (selección), Cmd+Shift+5 (barra de captura/grabación).
+  const esCapturaMac = evento.metaKey && evento.shiftKey && ["3","4","5"].includes(evento.key);
+
+  if(!(esImprPant || esSnipWindows || esCapturaMac)) return;
+
+  // Evita contar el mismo intento dos veces si el navegador dispara keydown Y keyup,
+  // o si varias teclas de la misma combinación disparan eventos por separado.
+  const ahora = Date.now();
+  if(ahora - ultimaCapturaDetectadaMs < 1000) return;
+  ultimaCapturaDetectadaMs = ahora;
+
+  sesionActual.capturasDetectadas = (sesionActual.capturasDetectadas || 0) + 1;
+  const combinacion = esImprPant ? "Impr Pant" : esSnipWindows ? "Win+Shift+S" : `Cmd+Shift+${evento.key}`;
+  registrarEvento(`Posible intento de captura de pantalla detectado (combinación: ${combinacion}).`);
+}
+document.addEventListener("keydown", posibleCaptura);
+document.addEventListener("keyup", posibleCaptura);
+
+/* ---------- calificación y entrega ---------- */
+function entregarExamen(autoEntregado){
+  if(!examenActivo) { // ya se había entregado (por ejemplo, el cronómetro llegó a 0 dos veces)
+    return;
+  }
+  examenActivo = false;
+  if(intervaloCronometro) clearInterval(intervaloCronometro);
+  detenerMarcaAgua();
+  document.getElementById("bloqueo-pantalla-completa").classList.add("oculto");
+
+  const datos = datosExamenPorVersion(sesionActual.version);
+  let aciertos = 0;
+  datos.preguntas.forEach((pregunta, indice)=>{
+    if(sesionActual.respuestas[indice] === pregunta.correcta) aciertos++;
+  });
+  const total = datos.preguntas.length;
+  const calificacion = Math.round((aciertos/total)*10*10)/10;
+
+  sesionActual.estado = "completado";
+  sesionActual.horaEntrega = Date.now();
+  sesionActual.autoEntregado = autoEntregado;
+  sesionActual.correctas = aciertos;
+  sesionActual.total = total;
+  sesionActual.calificacion = calificacion;
+  registrarEvento(autoEntregado ? "Examen entregado automáticamente (se acabó el tiempo)." : "Examen entregado por el alumno.");
+  guardarSesion();
+
+  if(document.fullscreenElement){
+    document.exitFullscreen().catch(()=>{});
+  }
+
+  document.getElementById("texto-calificacion").textContent = `${calificacion.toFixed(1)} / 10`;
+  document.getElementById("texto-detalle-resultado").textContent =
+    `${aciertos} de ${total} respuestas correctas. Tiempo usado: ${formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio)}. ` +
+    `Salidas detectadas (pestaña o pantalla completa): ${sesionActual.salidas || 0}.`;
+  mostrarSoloVista("vista-resultados");
+
+  enviarAGoogleSheets();
+}
+
+document.getElementById("btn-reenviar").addEventListener("click", enviarAGoogleSheets);
+
+/* ---------- descarga del comprobante en Excel ---------- */
+document.getElementById("btn-descargar-excel").addEventListener("click", ()=>{
+  const fila = [{
+    "Nombre completo": sesionActual.nombre,
+    "Grupo": sesionActual.grupo,
+    "Versión": sesionActual.version,
+    "Horario apertura": formatearFecha(sesionActual.horarioApertura),
+    "Horario cierre": formatearFecha(sesionActual.horarioCierre),
+    "Hora de inicio": formatearFecha(sesionActual.inicio),
+    "Hora de entrega": formatearFecha(sesionActual.horaEntrega),
+    "Tiempo usado": formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio),
+    "¿Auto-entregado?": sesionActual.autoEntregado ? "Sí" : "No",
+    "Intentos": 1,
+    "Aciertos": sesionActual.correctas,
+    "Total de preguntas": sesionActual.total,
+    "Calificación (/10)": sesionActual.calificacion,
+    "Salidas significativas": sesionActual.salidas,
+    "Tiempo fuera (segundos)": sesionActual.tiempoFueraTotal,
+    "Eventos copiar/pegar": sesionActual.eventosCopiarPegar,
+    "Bitácora": sesionActual.bitacora.join(" | "),
+    "Estado": calcularEstado(sesionActual)
+  }];
+  const hoja = XLSX.utils.json_to_sheet(fila);
+  const libro = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(libro, hoja, "Resultado");
+  XLSX.writeFile(libro, `Resultado_${normalizar(sesionActual.nombre)}_${sesionActual.grupo}.xlsx`);
+});
 </script>
 </body>
 </html>
