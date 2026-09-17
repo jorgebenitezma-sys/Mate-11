@@ -225,7 +225,7 @@
      (independiente del horario general del grupo). Si se acaba, se entrega solo.
 ------------------------------------------------------------------------------------- */
 const TITULO_EXAMEN = "Reto: línea recta y sus ecuaciones";
-const DURACION_MINUTOS = 50;
+const DURACION_MINUTOS = 40;
 
 /* -------------------------------------------------------------------------------------
    PASO 2. Grupos y horarios de aplicación
@@ -243,7 +243,7 @@ const HORARIOS_GRUPOS = {
   "B": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
   "C": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
   "D": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
-  "E": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" },
+  "E": { apertura: "2026-09-17T07:00", cierre: "2026-09-17T14:10" },
   "F": { apertura: "2026-09-17T07:00", cierre: "2026-09-18T14:10" }
 };
 
@@ -257,7 +257,7 @@ const HORARIOS_GRUPOS = {
      código solo reinicia el examen EN ESE DISPOSITIVO. Para llevar un control limpio,
      borra también el renglón correspondiente en la hoja de Google Sheets (ver PASO 4).
 ------------------------------------------------------------------------------------- */
-const CODIGO_REINICIO = "CAMBIA-ESTE-CODIGO-2026";
+const CODIGO_REINICIO = "AUTORIZADO2026";
 
 /* -------------------------------------------------------------------------------------
    PASO 4. Conexión con Google Sheets
@@ -285,9 +285,9 @@ const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbx22qV025wlfx
      alumno sobre el examen, para que cualquier imagen que se filtre quede
      identificada.
 ------------------------------------------------------------------------------------- */
-const SEGUNDOS_SALIDA_SIGNIFICATIVA = 3;
-const LIMITE_SALIDAS_SOSPECHOSAS = 3;
-const LIMITE_SEGUNDOS_SOSPECHOSOS = 60;
+const SEGUNDOS_SALIDA_SIGNIFICATIVA = 1;
+const LIMITE_SALIDAS_SOSPECHOSAS = 2;
+const LIMITE_SEGUNDOS_SOSPECHOSOS = 5;
 const USAR_PANTALLA_COMPLETA = true;
 
 /* -------------------------------------------------------------------------------------
