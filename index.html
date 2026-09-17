@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuito de Centros · Las 5 formas de la recta</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --paper:#F4F6F9; --grid:#DCE3EC; --navy:#142647; --navy-soft:#3A4F76;
+  --orange:#E2552B; --orange-soft:#FBE2D8; --gold:#C9982E;
+  --locked:#A6AEBB; --locked-bg:#EBEDF1; --ink:#1C2333; --white:#FFFFFF; --radius:2px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'IBM Plex Sans', system-ui, sans-serif; color:var(--ink);
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/32px 32px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/32px 32px,
+    var(--paper);
+  min-height:100vh; padding:28px 20px 40px;
+}
+h1,h2,h3{font-family:'Space Grotesk', system-ui, sans-serif; margin:0; color:var(--navy);}
+.eq{font-family:'IBM Plex Mono', monospace; font-weight:600;}
+
+header{
+  max-width:1180px; margin:0 auto 20px; display:flex; flex-wrap:wrap;
+  align-items:flex-end; justify-content:space-between; gap:18px;
+  border-bottom:3px solid var(--navy); padding-bottom:18px;
+}
+header h1{font-size:clamp(24px,3vw,34px); letter-spacing:-0.01em;}
+header p{margin:6px 0 0; color:var(--navy-soft); font-size:15px;}
+.status{font-size:12px; color:var(--navy-soft); display:flex; align-items:center; gap:6px;}
+.status .dotstatus{width:8px; height:8px; border-radius:50%; background:var(--orange);}
+.status.offline .dotstatus{background:var(--locked);}
+
+.track-wrap{max-width:1180px; margin:0 auto 30px; padding:20px 10px 6px;}
+.track{position:relative; height:2px; background:var(--navy); margin:0 26px;}
+.stops{display:flex; justify-content:space-between; margin:0 6px; position:relative; top:-13px;}
+.stop{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.stop .dot{
+  width:26px; height:26px; border-radius:50%; background:var(--locked-bg); border:2.5px solid var(--locked);
+  display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif;
+  font-weight:700; font-size:13px; color:var(--locked); transition:.2s;
+}
+.stop.unlocked .dot{background:var(--orange); border-color:var(--orange); color:var(--white);}
+.stop .stop-label{font-size:11.5px; text-align:center; max-width:90px; color:var(--navy-soft); font-weight:500;}
+.stop.unlocked .stop-label{color:var(--navy);}
+
+main{max-width:1180px; margin:0 auto;}
+.cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:16px;}
+.card{
+  background:var(--white); border:1.5px solid var(--grid); border-left:5px solid var(--locked);
+  padding:16px 18px 18px; min-height:230px; display:flex; flex-direction:column;
+}
+.card.unlocked{border-left-color:var(--orange);}
+.card-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
+.card-head h3{font-size:15px;}
+.formula{font-size:15px; margin-bottom:10px; color:var(--navy-soft);}
+.locked-msg{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--locked); text-align:center; font-size:13px; padding:20px 0;}
+.locked-msg svg{width:26px; height:26px;}
+.context{font-size:13px; color:var(--navy-soft); margin-bottom:8px; line-height:1.45;}
+.prompt{font-size:14px; margin-bottom:10px; line-height:1.5;}
+.retro{background:var(--orange-soft); border-left:3px solid var(--orange); padding:8px 10px; font-size:13px; margin-bottom:12px; line-height:1.45;}
+.answer{margin-top:auto; padding-top:10px; border-top:1px dashed var(--grid);}
+.btn{
+  font-family:'IBM Plex Sans', sans-serif; font-size:12px; font-weight:500;
+  border:1.5px solid var(--navy); background:var(--white); color:var(--navy);
+  padding:4px 9px; cursor:pointer; border-radius:var(--radius);
+}
+.btn:hover{background:var(--navy); color:var(--white);}
+.answer-body{font-size:13.5px; margin-top:8px; line-height:1.5; display:none;}
+.answer-body.show{display:block;}
+.answer-body .eq{display:block; margin-top:4px;}
+
+.roles{max-width:1180px; margin:30px auto 0; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:10px;}
+.role{background:var(--white); border:1px solid var(--grid); padding:10px 12px; font-size:12.5px; line-height:1.4;}
+.role b{display:block; color:var(--navy); font-size:12.5px; margin-bottom:2px;}
+
+.note{max-width:1180px; margin:20px auto 0; font-size:12px; color:var(--navy-soft); line-height:1.5;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="titles">
+    <h1>Circuito de Centros</h1>
+    <p>Las 5 formas de la ecuación de la recta · Unidad 2 · Fase Sistémico</p>
+  </div>
+  <div class="status" id="status"><span class="dotstatus"></span><span id="statusText">Conectando…</span></div>
+</header>
+
+<div class="track-wrap">
+  <div class="track"></div>
+  <div class="stops" id="stops"></div>
+</div>
+
+<main>
+  <div class="cards" id="cards"></div>
+</main>
+
+<div class="roles">
+  <div class="role"><b>Coordinador</b>Organiza al equipo y controla el tiempo del centro.</div>
+  <div class="role"><b>Supervisor</b>Revisa que el procedimiento y la respuesta sean correctos.</div>
+  <div class="role"><b>Relaciones públicas</b>Explica la solución si otro equipo o el profesor pregunta.</div>
+  <div class="role"><b>Responsable de recursos</b>Cuida el material del centro y lo deja listo para el siguiente equipo.</div>
+</div>
+
+<p class="note">Esta página consulta en vivo la hoja de control del profesor. Los cambios pueden tardar hasta un minuto en reflejarse (así funciona la publicación de Google Sheets).</p>
+
+<script>
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSJ32ph8JJPCP4gI1r4I1d4m2QV5B36cwwkREy2D3-SXTHVy1-DtteyeNzh8Owe57tVy4dmKpz27ZsO/pub?output=csv";
+
+const centros = [
+  {
+    id:1, forma:"Punto-pendiente", formula:"y − y₁ = m(x − x₁)",
+    contexto:"El ingeniero traza una rampa de acceso para sillas de ruedas. Debe tener pendiente 3/4 y pasar por el punto (4, 2), donde inicia la banqueta.",
+    prompt:"Escribe la ecuación de la rampa en forma punto-pendiente.",
+    reto:"Reto de conversión: pasa tu resultado a la forma general Ax + By + C = 0.",
+    respuesta:"y − 2 = ¾(x − 4)",
+    respuesta2:"Forma general: 3x − 4y − 4 = 0"
+  },
+  {
+    id:2, forma:"Pendiente-ordenada al origen", formula:"y = mx + b",
+    contexto:"Un taxi cobra $15 de banderazo más $8 por cada kilómetro recorrido.",
+    prompt:"Modela el costo con la forma pendiente-ordenada al origen y calcula cuánto se paga por un viaje de 12 km.",
+    reto:"Reto de conversión: ¿qué representa el valor de b en el contexto del problema?",
+    respuesta:"y = 8x + 15",
+    respuesta2:"En x = 12 → y = $111. b es el costo fijo (banderazo) antes de recorrer cualquier distancia."
+  },
+  {
+    id:3, forma:"Dos puntos", formula:"y − y₁ = (y₂−y₁)/(x₂−x₁) · (x − x₁)",
+    contexto:"Una calle recta pasa por la papelería, en (1, 2), y por la farmacia, en (5, 10).",
+    prompt:"Encuentra la ecuación de la calle usando la forma de dos puntos.",
+    reto:"Reto de conversión: verifica si el punto (3, 6) también está sobre la calle.",
+    respuesta:"m = 2  →  y − 2 = 2(x − 1)  →  y = 2x",
+    respuesta2:"En x = 3 → y = 6. Sí, (3, 6) está sobre la calle."
+  },
+  {
+    id:4, forma:"Simétrica", formula:"x/a + y/b = 1",
+    contexto:"El trazo de una ciclovía cruza la avenida principal (eje x) en x = 6 y la calle transversal (eje y) en y = 4.",
+    prompt:"Escribe la ecuación de la ciclovía en forma simétrica.",
+    reto:"Reto de conversión: pásala a la forma general.",
+    respuesta:"x/6 + y/4 = 1",
+    respuesta2:"Forma general: 2x + 3y − 12 = 0"
+  },
+  {
+    id:5, forma:"General", formula:"Ax + By + C = 0",
+    contexto:"El plano del fraccionamiento marca una barda con ecuación 5x − 2y − 10 = 0.",
+    prompt:"Encuentra dónde cruza la barda los ejes y calcula su pendiente.",
+    reto:"Reto de conversión: escribe la ecuación en forma punto-pendiente usando el intercepto con el eje x.",
+    respuesta:"Intercepto x: (2, 0)   Intercepto y: (0, −5)   m = 5/2",
+    respuesta2:"y − 0 = 5/2 (x − 2)"
+  }
+];
+
+const showAnswer = {};
+centros.forEach(c => showAnswer[c.id] = false);
+let locks = {}; centros.forEach(c => locks[c.id] = false);
+
+const stopsEl = document.getElementById('stops');
+const cardsEl = document.getElementById('cards');
+const statusEl = document.getElementById('status');
+const statusText = document.getElementById('statusText');
+
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  const rows = lines.slice(1); // skip header
+  const result = {};
+  rows.forEach(line => {
+    const parts = line.split(',');
+    const id = parts[0] ? parts[0].trim() : null;
+    const habilitado = parts[2] ? parts[2].trim().toUpperCase() : "FALSE";
+    if(id) result[id] = habilitado === "TRUE";
+  });
+  return result;
+}
+
+async function fetchState(){
+  try{
+    const res = await fetch(SHEET_CSV_URL + "&cachebust=" + Date.now(), { cache: "no-store" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    locks = parseCSV(text);
+    statusEl.classList.remove('offline');
+    statusText.textContent = "Conectado";
+  } catch(e){
+    statusEl.classList.add('offline');
+    statusText.textContent = "Sin conexión, mostrando último estado";
+  }
+  render();
+}
+
+function render(){
+  stopsEl.innerHTML = centros.map(c => `
+    <div class="stop ${locks[c.id] ? 'unlocked' : ''}">
+      <span class="dot">${c.id}</span>
+      <span class="stop-label">${c.forma}</span>
+    </div>
+  `).join('');
+
+  cardsEl.innerHTML = centros.map(c => {
+    const unlocked = locks[c.id];
+    if(!unlocked){
+      return `
+        <div class="card">
+          <div class="card-head">
+            <h3>Centro ${c.id} · ${c.forma}</h3>
+            <span class="eq">${c.formula}</span>
+          </div>
+          <div class="locked-msg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
+            Bloqueado — esperando al profesor
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="card unlocked">
+        <div class="card-head"><h3>Centro ${c.id} · ${c.forma}</h3></div>
+        <div class="formula eq">${c.formula}</div>
+        <div class="context">${c.contexto}</div>
+        <div class="prompt"><b>${c.prompt}</b></div>
+        <div class="retro">${c.reto}</div>
+        <div class="answer">
+          <button class="btn" data-answer="${c.id}">${showAnswer[c.id] ? 'Ocultar respuesta' : 'Mostrar respuesta'}</button>
+          <div class="answer-body ${showAnswer[c.id] ? 'show' : ''}">
+            <span class="eq">${c.respuesta}</span>
+            <span class="eq">${c.respuesta2}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.querySelectorAll('[data-answer]').forEach(el => {
+    el.onclick = e => {
+      const id = e.target.getAttribute('data-answer');
+      showAnswer[id] = !showAnswer[id];
+      render();
+    };
+  });
+}
+
+fetchState();
+setInterval(fetchState, 4000);
+</script>
+</body>
+</html>
