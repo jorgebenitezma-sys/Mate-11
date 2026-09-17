@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen: Unidad 1 y Ecuación de la Recta — Matemáticas III</title>
+
+<!-- Librería para poder generar el comprobante en PDF directamente en el navegador.
+     No necesitas instalar nada: se carga automáticamente desde internet. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  :root{
+    --azul-marino:#12224a;
+    --naranja:#e8722a;
+    --dorado:#c9a227;
+    --gris-claro:#f4f5f7;
+    --gris-borde:#d7dbe2;
+    --verde-ok:#1f8a4c;
+    --rojo-alerta:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:"Segoe UI", Arial, sans-serif;
+    margin:0; padding:0;
+    background:var(--gris-claro);
+    color:#1c1c1c;
+  }
+  header{
+    background:var(--azul-marino);
+    color:#fff;
+    padding:18px 24px;
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap;
+  }
+  header h1{margin:0; font-size:1.15rem;}
+  header .franja{height:4px; background:linear-gradient(90deg,var(--naranja),var(--dorado)); width:100%; position:absolute; left:0; top:0;}
+  main{max-width:760px; margin:24px auto; padding:0 16px 60px;}
+  .tarjeta{
+    background:#fff;
+    border:1px solid var(--gris-borde);
+    border-radius:10px;
+    padding:24px;
+    margin-bottom:20px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  .oculto{display:none !important;}
+  label{display:block; font-weight:600; margin:14px 0 6px;}
+  input[type=text], input[type=password], select{
+    width:100%; padding:10px; border:1px solid var(--gris-borde); border-radius:6px; font-size:1rem;
+  }
+  button{
+    background:var(--naranja); color:#fff; border:none; border-radius:6px;
+    padding:12px 20px; font-size:1rem; font-weight:600; cursor:pointer; margin-top:16px;
+  }
+  button:hover{opacity:0.92;}
+  button.secundario{background:var(--azul-marino);}
+  .mensaje-error{color:var(--rojo-alerta); font-weight:600; margin-top:10px;}
+  .mensaje-info{color:var(--azul-marino); font-weight:600; margin-top:10px;}
+  .barra-examen{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--azul-marino); color:#fff; padding:12px 18px; border-radius:8px; margin-bottom:18px;
+    flex-wrap:wrap; gap:8px;
+  }
+  .cronometro{
+    font-size:1.3rem; font-weight:700; background:var(--naranja); padding:4px 14px; border-radius:6px;
+  }
+  .lectura{
+    background:#fdf6ea; border-left:4px solid var(--dorado); padding:14px 18px; margin-bottom:20px; border-radius:4px;
+  }
+  .pregunta{
+    border-bottom:1px solid var(--gris-borde);
+    padding:16px 0;
+  }
+  .pregunta p.enunciado{font-weight:600; margin:0 0 10px;}
+  .opcion{display:flex; align-items:center; gap:10px; margin:6px 0; padding:6px 8px; border-radius:6px;}
+  .opcion:hover{background:#f0f2f6;}
+  .opcion input{width:auto;}
+  .resultado-nota{font-size:2.2rem; font-weight:800; color:var(--azul-marino);}
+  footer{text-align:center; color:#888; font-size:0.8rem; padding:20px;}
+  .barra-progreso{width:100%; height:8px; background:var(--gris-borde); border-radius:6px; overflow:hidden;}
+  .barra-progreso-relleno{height:100%; background:linear-gradient(90deg,var(--naranja),var(--dorado)); width:0%; transition:width .25s;}
+  .contador-antifraude{
+    font-size:.78rem; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.3);
+    border-radius:6px; padding:6px 12px; text-align:center; line-height:1.4;
+  }
+  .contador-antifraude b{font-size:.95rem;}
+  .contador-antifraude.alerta{background:rgba(192,57,43,0.35); border-color:var(--rojo-alerta);}
+  .bloqueo-pantalla-completa{
+    position:fixed; inset:0; z-index:900; background:rgba(10,15,30,0.94);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .bloqueo-pantalla-completa-caja{
+    background:#fff; border-radius:10px; max-width:420px; padding:28px; text-align:center;
+  }
+  .bloqueo-pantalla-completa-caja h2{margin:0 0 12px; color:var(--rojo-alerta);}
+  .bloqueo-pantalla-completa-caja p{margin:0 0 18px; color:#444; font-size:.9rem; line-height:1.5;}
+  .panel-reinicio{margin-top:16px; border-top:1px dashed var(--gris-borde); padding-top:14px;}
+  .ayuda{font-size:0.85rem; color:#555;}
+  .marca-agua{
+    position:fixed; inset:0; z-index:500; pointer-events:none;
+    display:flex; flex-wrap:wrap; align-content:space-around; justify-content:space-around;
+    overflow:hidden; opacity:0.09;
+  }
+  .marca-agua span{
+    display:inline-block; transform:rotate(-28deg);
+    font-size:13px; font-weight:700; color:#000; white-space:nowrap; margin:26px;
+  }
+  .navegador-preguntas{
+    display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 6px;
+  }
+  .nav-pregunta-btn{
+    width:34px; height:34px; border-radius:6px; border:1px solid var(--gris-borde);
+    background:#fff; color:var(--azul-marino); font-size:.8rem; font-weight:700;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+    margin:0;
+  }
+  .nav-pregunta-btn.respondida{ background:#eaf3ec; border-color:var(--verde-ok); color:var(--verde-ok); }
+  .nav-pregunta-btn.actual{ background:var(--azul-marino); border-color:var(--azul-marino); color:#fff; }
+  .fila-botones-examen{ display:flex; gap:10px; margin-top:16px; }
+  .fila-botones-examen button{ flex:1; margin-top:0; }
+  textarea.respuesta-abierta{
+    width:100%; padding:10px; border:1px solid var(--gris-borde); border-radius:6px;
+    font-size:1rem; font-family:inherit; resize:vertical; min-height:90px; margin-top:4px;
+  }
+  .subpregunta-abierta{ margin-bottom:16px; }
+  .subpregunta-abierta label{ margin:0 0 4px; }
+  .imagen-pregunta{ max-width:100%; border:1px solid var(--gris-borde); border-radius:8px; margin-bottom:14px; display:block; }
+  .aviso-manual{
+    background:#fdf6ea; border-left:4px solid var(--dorado); padding:12px 16px; border-radius:4px; margin:14px 0; font-size:.92rem;
+  }
+</style>
+</head>
+<body>
+
+<header><div class="franja"></div>
+  <h1 id="titulo-encabezado">Examen</h1>
+  <span id="reloj-header" style="font-size:.85rem;"></span>
+</header>
+
+<main>
+
+  <!-- ============ PANTALLA 1: LOGIN ============ -->
+  <section id="vista-login" class="tarjeta">
+    <h2>Antes de empezar</h2>
+    <p>Completa tus datos. Al terminar el examen no podrás volver a presentarlo con el mismo nombre y grupo.</p>
+    <form id="form-login">
+      <label for="campo-nombre">Nombre completo</label>
+      <input type="text" id="campo-nombre" placeholder="Ej. Juan Pérez López" required>
+
+      <label for="campo-grupo">Grupo</label>
+      <select id="campo-grupo" required>
+        <option value="">-- Selecciona tu grupo --</option>
+      </select>
+
+      <button type="submit">Entrar al examen</button>
+      <p id="login-cargando" class="mensaje-info oculto">Verificando disponibilidad, espera un momento…</p>
+      <p id="login-error" class="mensaje-error oculto"></p>
+    </form>
+  </section>
+
+  <!-- ============ PANTALLA 2: BLOQUEADO / FUERA DE HORARIO / YA PRESENTADO ============ -->
+  <section id="vista-bloqueado" class="tarjeta oculto">
+    <h2>El examen no está disponible en este momento</h2>
+    <p id="mensaje-bloqueo"></p>
+    <div id="panel-reinicio" class="panel-reinicio oculto">
+      <label for="campo-codigo-reinicio">Código de reinicio (solo si tu profesor te lo indica)</label>
+      <input type="password" id="campo-codigo-reinicio" placeholder="Código proporcionado por el profesor">
+      <button id="btn-reiniciar" class="secundario">Reiniciar mi intento</button>
+      <p class="ayuda">Este código solo debe usarse si tuviste un problema técnico real (por ejemplo, se cerró el navegador sin querer) y tu profesor te autorizó a reintentar.</p>
+    </div>
+    <p id="reinicio-error" class="mensaje-error oculto"></p>
+  </section>
+
+  <!-- ============ PANTALLA 3: EXAMEN ============ -->
+  <section id="vista-examen" class="oculto">
+    <div class="barra-examen">
+      <div>
+        <div id="info-alumno" style="font-weight:600;"></div>
+      </div>
+      <div id="contador-antifraude" class="contador-antifraude"></div>
+      <div class="cronometro" id="cronometro">--:--</div>
+    </div>
+
+    <div class="tarjeta">
+      <div id="lectura-contenedor"></div>
+
+      <div id="progreso-texto" style="font-family:monospace; font-size:.85rem; color:var(--azul-marino); font-weight:700; margin-bottom:6px;"></div>
+      <div class="barra-progreso"><div class="barra-progreso-relleno" id="barra-progreso-relleno"></div></div>
+      <div id="navegador-preguntas" class="navegador-preguntas"></div>
+
+      <div id="pregunta-actual-contenedor" style="margin-top:18px;"></div>
+      <p id="pregunta-error" class="mensaje-error oculto"></p>
+
+      <div class="fila-botones-examen">
+        <button id="btn-anterior" class="secundario" type="button">← Anterior</button>
+        <button id="btn-siguiente" type="button">Siguiente →</button>
+      </div>
+      <button id="btn-entregar" class="secundario" type="button" style="width:100%; margin-top:10px;">Entregar examen</button>
+      <p class="ayuda">Puedes moverte libremente entre preguntas con los botones o con el panel de números antes de entregar. Solo tienes un intento: una vez que entregues el examen no podrás modificarlo. Evita salir de esta pestaña, cambiar de aplicación (Alt+Tab / Cmd+Tab), copiar/pegar texto o tomar capturas de pantalla; estas acciones quedan registradas y tu nombre aparece marcado sobre el examen.</p>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 4: RESULTADOS ============ -->
+  <section id="vista-resultados" class="tarjeta oculto">
+    <h2>Examen entregado</h2>
+    <p>Puntaje automático obtenido:</p>
+    <div class="resultado-nota" id="texto-calificacion">-- / --</div>
+    <p id="texto-detalle-resultado" style="margin-top:10px;"></p>
+    <p id="aviso-calificacion-pendiente" class="aviso-manual oculto">
+      ⏳ Tu calificación final está <b>pendiente</b>: incluye preguntas de respuesta abierta que tu
+      profesor(a) calificará manualmente leyendo tus respuestas. Tus respuestas ya quedaron guardadas
+      en este dispositivo y se incluyen en tu comprobante en PDF y en el registro enviado a la hoja
+      de control (si tu profesor(a) configuró esa opción).
+    </p>
+    <button id="btn-descargar-pdf">Descargar mi comprobante en PDF</button>
+    <button id="btn-reenviar" class="secundario oculto">Reintentar envío a Google Sheets</button>
+    <p id="texto-envio-sheets" class="mensaje-info"></p>
+  </section>
+
+</main>
+
+<div class="marca-agua" id="marca-agua"></div>
+
+<div class="bloqueo-pantalla-completa oculto" id="bloqueo-pantalla-completa">
+  <div class="bloqueo-pantalla-completa-caja">
+    <h2>⚠️ Saliste de pantalla completa</h2>
+    <p>Esto quedó registrado. El examen sigue corriendo (el cronómetro no se detiene) mientras esta pantalla esté abierta.</p>
+    <button id="btn-volver-pantalla-completa">🔒 Volver a pantalla completa</button>
+  </div>
+</div>
+
+<footer>Sistema de examen en línea — generado para uso académico interno.</footer>
+<iframe name="marco-envio-oculto" id="marco-envio-oculto" style="display:none;" title="envio-oculto"></iframe>
+
+<script>
+/* =====================================================================================
+   ZONA DE CONFIGURACIÓN — AQUÍ ES DONDE TÚ HACES CAMBIOS
+   No necesitas tocar nada más abajo de la línea que dice "NO EDITAR DE AQUÍ EN ADELANTE".
+   ===================================================================================== */
+
+/* -------------------------------------------------------------------------------------
+   PASO 1. Datos generales del examen
+   - TITULO_EXAMEN: aparece arriba de la página y en el encabezado.
+   - DURACION_MINUTOS: tiempo máximo que cada alumno tiene UNA VEZ QUE ENTRA al examen
+     (independiente del horario general del grupo). Si se acaba, se entrega solo.
+------------------------------------------------------------------------------------- */
+const TITULO_EXAMEN = "Examen: Unidad 1 (Ejes Coordenados) y Ecuación de la Recta — Matemáticas III";
+const DURACION_MINUTOS = 40;
+
+/* -------------------------------------------------------------------------------------
+   PASO 2. Grupos y horarios de aplicación
+   - Escribe aquí el nombre de cada grupo (la etiqueta que verá el alumno en la lista)
+     y su horario de apertura y cierre.
+   - Formato de fecha y hora: "AAAA-MM-DDTHH:MM"  (24 horas, hora de tu computadora/servidor)
+     Ejemplo: 15 de septiembre de 2026 a las 8:00 am -> "2026-09-15T08:00"
+   - Puedes agregar, quitar o renombrar grupos libremente; solo respeta el formato.
+   - Lista de grupos: A a E (5 grupos).
+------------------------------------------------------------------------------------- */
+const HORARIOS_GRUPOS = {
+  "A": { apertura: "2026-09-13T07:00", cierre: "2026-09-15T14:00" },
+  "B": { apertura: "2026-09-13T07:00", cierre: "2026-09-15T14:00" },
+  "C": { apertura: "2026-09-13T07:00", cierre: "2026-09-15T14:00" },
+  "D": { apertura: "2026-09-13T07:00", cierre: "2026-09-15T14:00" },
+  "E": { apertura: "2026-09-13T07:00", cierre: "2026-09-15T14:00" }
+};
+
+/* -------------------------------------------------------------------------------------
+   PASO 3. Código maestro de reinicio
+   - Sirve para que TÚ (el profesor) puedas dejar que un alumno reintente el examen
+     en el MISMO dispositivo si tuvo un problema real (se cerró el navegador, se fue
+     la luz, etc.). El alumno debe escribir este código en la pantalla de bloqueo.
+   - Cámbialo por algo que solo tú conozcas y que no sea obvio.
+   - IMPORTANTE: si el examen ya había quedado registrado en Google Sheets, este
+     código solo reinicia el examen EN ESE DISPOSITIVO. Para llevar un control limpio,
+     borra también el renglón correspondiente en la hoja de Google Sheets (ver PASO 4).
+------------------------------------------------------------------------------------- */
+const CODIGO_REINICIO = "MATIII2026";
+
+/* -------------------------------------------------------------------------------------
+   PASO 4. Conexión con Google Sheets
+   - Pega aquí la URL que obtienes al publicar el Apps Script como "aplicación web"
+     (instrucciones completas en el archivo Codigo_Google_Apps_Script.gs.txt que se
+     entrega junto con este archivo).
+   - Si dejas esto vacío (""), el examen sigue funcionando normal, solo que no se
+     enviará automáticamente a Google Sheets (el alumno solo descargará su comprobante en PDF).
+------------------------------------------------------------------------------------- */
+const URL_GOOGLE_SHEETS = ""; // Vacío a propósito: pega aquí tu propia URL de Apps Script si quieres recibir los resultados en Google Sheets (ver PASO 4 arriba). Sin ella, el examen funciona igual y el alumno descarga su comprobante en PDF.
+
+/* -------------------------------------------------------------------------------------
+   PASO 5. Umbrales del sistema antifraude
+   - SEGUNDOS_SALIDA_SIGNIFICATIVA: si el alumno sale de la pestaña menos tiempo que
+     este valor, NO se cuenta (para no penalizar parpadeos o notificaciones rápidas).
+   - LIMITE_SALIDAS_SOSPECHOSAS / LIMITE_SEGUNDOS_SOSPECHOSOS: a partir de cuántas
+     salidas o segundos fuera se marca el examen como 🚨 en el reporte.
+   - USAR_PANTALLA_COMPLETA: si es true, el sistema intenta poner el examen en
+     pantalla completa y registra si el alumno sale de ella. Si el navegador del
+     alumno no lo permite, el examen sigue funcionando normalmente (no se bloquea).
+   - Sobre capturas de pantalla: ningún sitio web puede detectar de forma 100%
+     confiable cuando alguien toma una captura (mucho menos si usan el celular
+     para fotografiar la pantalla). El sistema detecta la tecla "Impr Pant" cuando
+     el navegador lo permite, y además coloca una marca de agua con el nombre del
+     alumno sobre el examen, para que cualquier imagen que se filtre quede
+     identificada.
+   - Sobre Alt+Tab / Cmd+Tab (cambiar de aplicación): la protección real es que,
+     en cuanto el alumno cambia de aplicación de verdad, la pestaña se oculta o el
+     examen sale de pantalla completa — y eso SIEMPRE se detecta y se cuenta como
+     salida (ver "visibilitychange" y "fullscreenchange" en el motor), con el
+     tiempo exacto que estuvo fuera. Además, el sistema intenta atrapar la propia
+     combinación de teclas (Alt+Tab, Alt+Esc, Cmd+Tab, Cmd+`) cuando el navegador
+     llega a recibirla antes de que el sistema operativo cambie de aplicación;
+     esto es un extra, no la protección principal, porque el sistema operativo
+     casi siempre intercepta esas teclas antes de que lleguen a la página.
+   - Sobre el botón "Entregar examen": salir de pantalla completa AL ENTREGAR
+     (ya sea que el alumno presione el botón o se acabe el tiempo) nunca se
+     cuenta como una salida sospechosa, porque el examen ya terminó en ese
+     momento (ver el comentario junto a "document.exitFullscreen()" dentro de
+     la función "entregarExamen" más abajo).
+------------------------------------------------------------------------------------- */
+const SEGUNDOS_SALIDA_SIGNIFICATIVA = 3;
+const LIMITE_SALIDAS_SOSPECHOSAS = 3;
+const LIMITE_SEGUNDOS_SOSPECHOSOS = 60;
+const USAR_PANTALLA_COMPLETA = true;
+
+/* -------------------------------------------------------------------------------------
+   PASO 6. Preguntas del examen — UNA SOLA VERSIÓN
+   El motor admite 6 TIPOS de pregunta:
+
+   1) "seleccion" — opción múltiple o Verdadero/Falso:
+        { tipo:"seleccion", pregunta:"...", opciones:["...","..."], correcta: 0 }
+      "correcta" es la POSICIÓN de la opción correcta empezando en 0.
+      Para Verdadero/Falso usa opciones:["Verdadero","Falso"].
+      Se califica AUTOMÁTICAMENTE. Vale 1 punto.
+
+   2) "multiple" — selección múltiple (varias opciones correctas, con casillas):
+        { tipo:"multiple", pregunta:"...", opciones:["...","...","..."], correctas:[0,2] }
+      "correctas" es el arreglo de POSICIONES correctas (pueden ser una o varias).
+      El alumno marca todas las que considere correctas. Se califica AUTOMÁTICAMENTE
+      y de forma exacta: el punto se otorga solo si el conjunto marcado coincide
+      exactamente con "correctas" (ni de más ni de menos). Vale 1 punto.
+
+   3) "asociar" — "relacionar conceptos" o "clasificar datos":
+        { tipo:"asociar", pregunta:"Instrucción...",
+          items:["término 1", ...], opciones:["definición A", ...],
+          correctas:[ indiceOpcionParaItem0, ... ] }
+      Lista desplegable por cada "item". Se califica AUTOMÁTICAMENTE.
+      Cada item vale 1 punto (el total de la pregunta = número de items).
+
+   4) "abierta" — una sola pregunta de respuesta libre (caja de texto):
+        { tipo:"abierta", pregunta:"...", puntosMaximos: 2 }
+      NO se califica automáticamente: solo se GUARDA la respuesta del alumno
+      (en el dispositivo, en el PDF del alumno y en Google Sheets si está configurado).
+      Tú asignas los puntos manualmente después, hasta "puntosMaximos".
+
+   5) "abierta_multiple" — un caso/contexto con varias sub-preguntas de texto libre:
+        { tipo:"abierta_multiple", pregunta:"Contexto o caso...",
+          subpreguntas:["¿...?","¿...?", ...], puntosMaximos: 2 }
+      Igual que "abierta" pero con una caja de texto por cada sub-pregunta.
+      Tampoco se califica automáticamente.
+
+   6) "graficar" — igual que "abierta" (una sola caja de texto, calificación MANUAL),
+      pero pensada para ejercicios de trazo/gráfica en papel o cuaderno de cuadrícula:
+        { tipo:"graficar", pregunta:"Grafica...", puntosMaximos: 3 }
+      El alumno describe en la caja de texto los elementos que trazó (ejes, escala,
+      puntos, rectas, ángulos, etc.); tú revisas su gráfica en papel por separado
+      y asignas los puntos manualmente, igual que en "abierta".
+
+   - "lectura": texto opcional que se muestra arriba de las preguntas. Déjalo como
+     cadena vacía "" si no lo necesitas.
+   - Puedes agregar, quitar o reordenar preguntas de cualquier tipo libremente.
+   - CALIFICACIÓN: al entregar, el alumno ve sus PUNTOS AUTOMÁTICOS (de "seleccion",
+     "multiple" y "asociar") y un aviso de que sus respuestas abiertas y de graficación
+     quedaron guardadas, pendientes de que tú les asignes puntos manualmente. El PDF
+     del alumno y el envío a Google Sheets incluyen el texto de cada respuesta abierta
+     y columnas en blanco para que anotes los puntos manuales; la calificación final =
+     (puntos automáticos + puntos manuales que tú asignes) dividido entre el total de
+     puntos posibles del examen, multiplicado por 10.
+   - NAVEGACIÓN LIBRE: el alumno puede regresar a preguntas anteriores y cambiar sus
+     respuestas antes de entregar (hay botones "Anterior"/"Siguiente" y un panel para
+     saltar directo a cualquier pregunta). No es obligatorio responder una pregunta
+     para avanzar a la siguiente; solo se le avisa cuántas preguntas dejó sin responder
+     justo antes de entregar, por si quiere regresar a completarlas.
+   - ORDEN DE PREGUNTAS: no hay preguntas ni versiones aleatorias — todos los alumnos
+     ven exactamente las mismas preguntas, en el mismo orden en que están escritas
+     aquí abajo. LO QUE SÍ SE ALEATORIZA es el ORDEN DE LAS OPCIONES dentro de cada
+     pregunta de tipo "seleccion", "multiple" y "asociar": cada alumno ve sus opciones
+     en un orden distinto (generado una sola vez y guardado en su sesión), así que dos
+     alumnos sentados uno junto al otro no ven la opción correcta en el mismo lugar.
+   - VERIFICACIÓN MATEMÁTICA: todos los resultados numéricos de este examen (distancias,
+     puntos medios, pendientes, ángulos, áreas, perímetros, ecuaciones de la recta y
+     condiciones de paralelismo/perpendicularidad) fueron verificados con Python antes
+     de escribirse aquí.
+   - CONTENIDO (versión recortada a 15 preguntas para caber en 40 minutos):
+     Preguntas 1-4 cubren Unidad 1, parte 1 (distancia entre dos puntos, punto medio,
+     división de un segmento en una razón dada, pendiente y ángulo de inclinación
+     combinados en una sola pregunta). Preguntas 5-7 cubren Unidad 1, parte 2
+     (perímetro y área de un cuadrilátero combinados, clasificación de un triángulo
+     por selección múltiple, área de un triángulo). Preguntas 8-11 cubren ecuación de
+     la recta (general, valor de una incógnita con pendiente dada, simétrica,
+     simplificada). Preguntas 12-13 cubren paralelismo y perpendicularidad
+     (Verdadero/Falso). Pregunta 14 relaciona fórmulas con su nombre. Pregunta 15 es
+     de graficación (calificación manual).
+   - AJUSTE DE TIEMPO: esta versión tiene menos preguntas que la original (15 en vez
+     de 24, algunas fusionando dos resultados numéricos en una sola pregunta de opción
+     múltiple) para que quepa cómodamente en los 40 minutos de DURACION_MINUTOS
+     (ver PASO 1). Si más adelante alargas el tiempo del examen, puedes volver a
+     separar las preguntas fusionadas o agregar las que se quitaron.
+------------------------------------------------------------------------------------- */
+
+const EXAMEN = {
+  lectura: "",
+  preguntas: [
+    /* ========== SECCIÓN A — Distancia, punto medio, división de un segmento, ========== */
+    /* ========== pendiente y ángulo de inclinación (4 preguntas) ========== */
+    { tipo:"seleccion",
+      pregunta:"Calcula la distancia entre los puntos A(-3, 4) y B(5, -2).",
+      opciones:["6 u", "8 u", "10 u", "14 u"], correcta:2 },
+
+    { tipo:"seleccion",
+      pregunta:"Encuentra las coordenadas del punto medio del segmento cuyos extremos son P1(2, -5) y P2(-6, 3).",
+      opciones:["(-2, -1)", "(2, 1)", "(-4, -2)", "(4, -8)"], correcta:0 },
+
+    { tipo:"seleccion",
+      pregunta:"El punto P divide al segmento que va de A(1, 2) a B(9, 10) en la razón r = 3 (AP:PB = 3:1). ¿Cuáles son las coordenadas de P?",
+      opciones:["(7, 8)", "(5, 6)", "(3, 4)", "(6.5, 7.5)"], correcta:0 },
+
+    { tipo:"seleccion",
+      pregunta:"Con M(-2, -3) y N(4, 5), calcula la pendiente y el ángulo de inclinación (aproximado) de la recta MN.",
+      opciones:["pendiente = 4/3, ángulo ≈ 53.1°", "pendiente = 3/4, ángulo ≈ 36.9°", "pendiente = -4/3, ángulo ≈ 126.9°", "pendiente = 2, ángulo ≈ 63.4°"],
+      correcta:0 },
+
+    /* ========== SECCIÓN B — Polígonos y triángulos (3 preguntas) ========== */
+    { tipo:"seleccion",
+      pregunta:"Un terreno tiene forma de cuadrilátero con vértices A(0,0), B(8,0), C(11,4) y D(3,4). Calcula su perímetro y su área.",
+      opciones:["Perímetro = 26 u, Área = 32 u²", "Perímetro = 24 u, Área = 30 u²", "Perímetro = 26 u, Área = 28 u²", "Perímetro = 30 u, Área = 36 u²"],
+      correcta:0 },
+
+    { tipo:"multiple",
+      pregunta:"Los vértices A(2,3), B(6,6) y C(9,2) forman un terreno triangular. Selecciona TODAS las clasificaciones correctas de este triángulo (puede haber más de una).",
+      opciones:["Equilátero", "Isósceles", "Escaleno", "Acutángulo", "Rectángulo", "Obtusángulo"],
+      correctas:[1, 4] },
+
+    { tipo:"seleccion",
+      pregunta:"¿Cuál es el área del terreno triangular del ejercicio anterior (A(2,3), B(6,6), C(9,2))?",
+      opciones:["10 u²", "12.5 u²", "15 u²", "25 u²"], correcta:1 },
+
+    /* ========== SECCIÓN C — Ecuación de la recta (4 preguntas) ========== */
+    { tipo:"seleccion",
+      pregunta:"Un ciclista recorre desde su casa (1,3) hasta la escuela (4,9). ¿Cuál es la ecuación general de la recta que representa su trayecto?",
+      opciones:["2x - y + 1 = 0", "x - 2y + 5 = 0", "2x + y - 5 = 0", "x - y + 2 = 0"], correcta:0 },
+
+    { tipo:"seleccion",
+      pregunta:"Un repartidor en bicicleta pasa por (2, r) y (6, 9) con pendiente 2. ¿Cuál es el valor de r?",
+      opciones:["1", "-1", "4", "7"], correcta:0 },
+
+    { tipo:"seleccion",
+      pregunta:"Un dron despega en P(-2,1) y vuela hacia Q(4,7). ¿Cuál es la ecuación simétrica de su trayectoria?",
+      opciones:["x/(-3) + y/3 = 1", "x/3 + y/3 = 1", "x/(-3) + y/(-3) = 1", "x/6 + y/6 = 1"], correcta:0 },
+
+    { tipo:"seleccion",
+      pregunta:"Un tren ligero recorre las estaciones M(2,-3) y N(8,3). ¿Cuál es la ecuación simplificada (pendiente-ordenada) de la recta que representa su trayecto?",
+      opciones:["y = x - 5", "y = x + 5", "y = -x - 5", "y = 2x - 7"], correcta:0 },
+
+    /* ========== SECCIÓN D — Paralelismo y perpendicularidad (2 preguntas, Verdadero/Falso) ========== */
+    { tipo:"seleccion",
+      pregunta:"La recta A: y = 3x + 10 y la recta B: y = 3x - 5 son paralelas.",
+      opciones:["Verdadero", "Falso"], correcta:0 },
+
+    { tipo:"seleccion",
+      pregunta:"Dos rectas son paralelas cuando el producto de sus pendientes es igual a -1.",
+      opciones:["Verdadero", "Falso"], correcta:1 },
+
+    /* ========== SECCIÓN E — Relaciona las fórmulas (asociar, 5 pts) ========== */
+    { tipo:"asociar",
+      pregunta:"Relaciona cada nombre de fórmula con su expresión correspondiente (selecciona la opción correcta para cada uno):",
+      items:[
+        "Ecuación general de la recta",
+        "Ecuación simplificada de la recta",
+        "Distancia entre dos puntos",
+        "Ecuación simétrica de la recta",
+        "Ecuación de la recta con dos puntos"
+      ],
+      opciones:[
+        "y - y1 = m (x - x1)",
+        "x/a + y/b = 1",
+        "Ax + By + C = 0",
+        "y = mx + b",
+        "y - y1 = ((y2-y1)/(x2-x1)) (x - x1)",
+        "d = √((x2-x1)² + (y2-y1)²)"
+      ],
+      correctas:[2, 3, 5, 1, 4] },
+
+    /* ========== SECCIÓN F — Graficar (respuesta abierta, calificación MANUAL, 3 pts) ========== */
+    { tipo:"graficar", puntosMaximos: 3,
+      pregunta:"Grafica el triángulo con vértices A(2,3), B(6,6) y C(9,2). Señala el ángulo recto que encontraste y describe cómo verificaste en tu trazo que se trata de un triángulo isósceles y rectángulo." }
+  ]
+};
+
+/* =====================================================================================
+   NO EDITAR DE AQUÍ EN ADELANTE — motor del sistema.
+   (Si sabes programar y quieres ajustar el comportamiento, adelante; si no, no hace
+   falta tocar nada de lo que sigue para que el examen funcione).
+   ===================================================================================== */
+
+let sesionActual = null;
+let examenActivo = false;
+let horaOculto = null;
+let horaFueraPantallaCompleta = null;
+let intervaloCronometro = null;
+let claveSesionActual = null;
+
+/* Algunos navegadores (sobre todo Safari en iPhone) exponen la función
+   requestFullscreen() pero en realidad NO permiten activar pantalla completa:
+   la promesa simplemente se rechaza o el navegador dispara un evento
+   "fullscreenchange" fantasma sin haber entrado nunca a pantalla completa.
+   document.fullscreenEnabled es la forma correcta de saber si el navegador
+   realmente lo soporta (en iPhone da "false"; en iPad/computadora da "true"). */
+const PANTALLA_COMPLETA_SOPORTADA = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+/* Se pone en true solo cuando confirmamos, con un evento real, que el examen
+   sí llegó a estar en pantalla completa. Mientras siga en false, ignoramos
+   cualquier evento de "salida" de pantalla completa porque nunca hubo una
+   pantalla completa real de la cual salir. */
+let pantallaCompletaFueActivada = false;
+
+document.getElementById("titulo-encabezado").textContent = TITULO_EXAMEN;
+
+/* ---------- utilidades ---------- */
+function normalizar(txt){
+  return (txt || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/\s+/g,"_");
+}
+function claveAlumno(nombre, grupo){
+  return `examen_recta_${normalizar(grupo)}_${normalizar(nombre)}`;
+}
+function formatearFecha(valor){
+  if(!valor) return "";
+  const f = new Date(valor);
+  return f.toLocaleString("es-MX", {dateStyle:"short", timeStyle:"short"});
+}
+function formatearDuracionMs(ms){
+  const totalSeg = Math.max(0, Math.round(ms/1000));
+  const min = Math.floor(totalSeg/60);
+  const seg = totalSeg%60;
+  return `${min}:${seg.toString().padStart(2,"0")}`;
+}
+function mostrarSoloVista(idVista){
+  ["vista-login","vista-bloqueado","vista-examen","vista-resultados"].forEach(id=>{
+    document.getElementById(id).classList.toggle("oculto", id!==idVista);
+  });
+}
+function actualizarRelojHeader(){
+  document.getElementById("reloj-header").textContent = new Date().toLocaleString("es-MX");
+}
+setInterval(actualizarRelojHeader, 1000);
+actualizarRelojHeader();
+
+/* ---------- construir lista de grupos ---------- */
+(function poblarGrupos(){
+  const select = document.getElementById("campo-grupo");
+  Object.keys(HORARIOS_GRUPOS).forEach(grupo=>{
+    const opcion = document.createElement("option");
+    opcion.value = grupo;
+    opcion.textContent = `Grupo ${grupo}`;
+    select.appendChild(opcion);
+  });
+})();
+
+/* ---------- guardar / leer sesión en localStorage ---------- */
+function guardarSesion(){
+  if(claveSesionActual && sesionActual){
+    localStorage.setItem(claveSesionActual, JSON.stringify(sesionActual));
+  }
+}
+function registrarEvento(texto){
+  if(!sesionActual) return;
+  const hora = new Date().toLocaleTimeString("es-MX");
+  sesionActual.bitacora.push(`${hora} — ${texto}`);
+  guardarSesion();
+  actualizarContadorVisible();
+}
+function actualizarContadorVisible(){
+  const elemento = document.getElementById("contador-antifraude");
+  if(!elemento || !sesionActual || !examenActivo) return;
+  const salidas = sesionActual.salidas || 0;
+  // Nota: las capturas de pantalla SÍ se siguen contando y registrando (bitácora,
+  // PDF y Google Sheets), simplemente ya no se le muestra el número al alumno.
+  elemento.innerHTML = `👁 Salidas detectadas: <b>${salidas}</b>`;
+  elemento.classList.toggle("alerta", salidas > 0);
+}
+
+/* ---------- verificación en servidor (Google Sheets) de intentos previos ---------- */
+async function verificarEnvioPrevio(nombre, grupo){
+  if(!URL_GOOGLE_SHEETS) return false;
+  try{
+    const controlador = new AbortController();
+    const limite = setTimeout(()=>controlador.abort(), 5000);
+    const url = `${URL_GOOGLE_SHEETS}?accion=verificar&nombre=${encodeURIComponent(nombre)}&grupo=${encodeURIComponent(grupo)}`;
+    const respuesta = await fetch(url, {signal: controlador.signal});
+    clearTimeout(limite);
+    const datos = await respuesta.json();
+    return !!datos.yaPresentado;
+  }catch(err){
+    // Si falla la verificación (sin internet, script mal configurado, etc.)
+    // NO bloqueamos al alumno por un problema técnico ajeno a él.
+    return false;
+  }
+}
+
+/* ---------- envío del registro final a Google Sheets ---------- */
+function enviarAGoogleSheets(){
+  const aviso = document.getElementById("texto-envio-sheets");
+  const btnReenviar = document.getElementById("btn-reenviar");
+  if(!URL_GOOGLE_SHEETS){
+    aviso.textContent = "⚠️ No se configuró la conexión a Google Sheets; el registro quedó guardado solo en este dispositivo. Descarga tu comprobante en PDF y entrégalo a tu profesor.";
+    return;
+  }
+  aviso.textContent = "Enviando tu registro a la hoja de control…";
+  try{
+    // Técnica de formulario oculto: es la forma más confiable de enviar datos a
+    // Google Apps Script desde una página sencilla, evita bloqueos de seguridad
+    // del navegador que a veces impiden que "fetch" complete el envío.
+    const iframe = document.getElementById("marco-envio-oculto");
+    const formulario = document.createElement("form");
+    formulario.method = "POST";
+    formulario.action = URL_GOOGLE_SHEETS;
+    formulario.target = "marco-envio-oculto";
+    formulario.style.display = "none";
+
+    const campo = document.createElement("input");
+    campo.type = "hidden";
+    campo.name = "payload";
+    campo.value = JSON.stringify(construirPayload());
+    formulario.appendChild(campo);
+
+    document.body.appendChild(formulario);
+    formulario.submit();
+    setTimeout(()=>{ document.body.removeChild(formulario); }, 3000);
+
+    aviso.textContent = "✅ Registro enviado a la hoja de control.";
+    btnReenviar.classList.add("oculto");
+  }catch(err){
+    aviso.textContent = "🚨 No se pudo enviar el registro a Google Sheets. Descarga tu comprobante en PDF como respaldo y usa el botón para reintentar.";
+    btnReenviar.classList.remove("oculto");
+  }
+}
+function obtenerCasosAbiertos(){
+  const datos = EXAMEN;
+  const casos = [];
+  datos.preguntas.forEach((pregunta, indice)=>{
+    if(pregunta.tipo === "abierta" || pregunta.tipo === "graficar"){
+      const respuesta = (typeof sesionActual.respuestas[indice] === "string") ? sesionActual.respuestas[indice].trim() : "";
+      const etiqueta = pregunta.tipo === "graficar" ? "Descripción de la gráfica" : "Respuesta";
+      casos.push({
+        numero: casos.length + 1,
+        maximo: pregunta.puntosMaximos,
+        texto: `${pregunta.pregunta}\n${etiqueta}: ${respuesta || "(sin responder)"}`
+      });
+    } else if(pregunta.tipo === "abierta_multiple"){
+      const respuestasSub = Array.isArray(sesionActual.respuestas[indice]) ? sesionActual.respuestas[indice] : [];
+      const texto = pregunta.subpreguntas.map((sub, i)=>{
+        const respuesta = (respuestasSub[i] || "").trim();
+        return `${sub}\nRespuesta: ${respuesta || "(sin responder)"}`;
+      }).join("\n\n");
+      casos.push({
+        numero: casos.length + 1,
+        maximo: pregunta.puntosMaximos,
+        texto: `Caso: ${pregunta.pregunta}\n\n${texto}`
+      });
+    }
+  });
+  return casos;
+}
+
+function construirPayload(){
+  const casosAbiertos = obtenerCasosAbiertos();
+  const payload = {
+    nombre: sesionActual.nombre,
+    grupo: sesionActual.grupo,
+    horarioApertura: formatearFecha(sesionActual.horarioApertura),
+    horarioCierre: formatearFecha(sesionActual.horarioCierre),
+    horaInicio: formatearFecha(sesionActual.inicio),
+    horaEntrega: formatearFecha(sesionActual.horaEntrega),
+    tiempoUsado: formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio),
+    autoEntregado: sesionActual.autoEntregado ? "Sí" : "No",
+    intentos: 1,
+    puntosAutomaticosObtenidos: sesionActual.correctas,
+    puntosAutomaticosPosibles: sesionActual.total,
+    puntosManualesPosibles: sesionActual.puntosManualesPosibles,
+    puntosPosiblesTotales: sesionActual.puntosPosiblesTotales,
+    calificacion: "Pendiente (revisar preguntas abiertas)",
+    salidasSignificativas: sesionActual.salidas,
+    tiempoFueraSegundos: sesionActual.tiempoFueraTotal,
+    eventosCopiarPegar: sesionActual.eventosCopiarPegar,
+    capturasDetectadas: sesionActual.capturasDetectadas || 0,
+    cambiosVentanaDetectados: sesionActual.cambiosVentanaDetectados || 0,
+    bitacora: sesionActual.bitacora.join(" | "),
+    estado: calcularEstado(sesionActual)
+  };
+  casosAbiertos.forEach(c=>{
+    payload[`casoAbierto${c.numero}Texto`] = c.texto;
+    payload[`casoAbierto${c.numero}PuntosMaximos`] = c.maximo;
+    payload[`casoAbierto${c.numero}PuntosAsignados`] = ""; // el profesor lo llena manualmente
+  });
+  return payload;
+}
+function calcularEstado(sesion){
+  const capturas = sesion.capturasDetectadas || 0;
+  const cambiosVentana = sesion.cambiosVentanaDetectados || 0;
+  if(sesion.salidas >= LIMITE_SALIDAS_SOSPECHOSAS || sesion.tiempoFueraTotal >= LIMITE_SEGUNDOS_SOSPECHOSOS || sesion.eventosCopiarPegar > 0 || capturas > 0 || cambiosVentana > 0){
+    return "🚨 Sospechoso";
+  }
+  if(sesion.salidas >= 1 || sesion.tiempoFueraTotal > 0){
+    return "⚠️ Revisar";
+  }
+  return "✅ Normal";
+}
+
+/* ---------- pantalla de bloqueo ---------- */
+function mostrarBloqueo(mensaje, conReinicio=false){
+  document.getElementById("mensaje-bloqueo").textContent = mensaje;
+  document.getElementById("panel-reinicio").classList.toggle("oculto", !conReinicio);
+  document.getElementById("reinicio-error").classList.add("oculto");
+  mostrarSoloVista("vista-bloqueado");
+}
+
+document.getElementById("btn-reiniciar").addEventListener("click", ()=>{
+  const codigo = document.getElementById("campo-codigo-reinicio").value.trim();
+  const errorTexto = document.getElementById("reinicio-error");
+  if(codigo !== CODIGO_REINICIO){
+    errorTexto.textContent = "Código incorrecto. Pídele el código correcto a tu profesor.";
+    errorTexto.classList.remove("oculto");
+    return;
+  }
+  if(claveSesionActual){
+    localStorage.removeItem(claveSesionActual);
+  }
+  errorTexto.classList.add("oculto");
+  document.getElementById("form-login").reset();
+  mostrarSoloVista("vista-login");
+});
+
+/* ---------- login ---------- */
+document.getElementById("form-login").addEventListener("submit", async function(evento){
+  evento.preventDefault();
+  const errorLogin = document.getElementById("login-error");
+  const cargando = document.getElementById("login-cargando");
+  errorLogin.classList.add("oculto");
+
+  const nombre = document.getElementById("campo-nombre").value.trim();
+  const grupo = document.getElementById("campo-grupo").value;
+
+  if(!nombre || !grupo){
+    errorLogin.textContent = "Completa tu nombre y grupo antes de continuar.";
+    errorLogin.classList.remove("oculto");
+    return;
+  }
+
+  // IMPORTANTE: la pantalla completa se pide AQUÍ, de inmediato, dentro del mismo
+  // clic del botón — los navegadores solo la permiten como reacción directa a una
+  // acción del usuario. Si se pide después de un "await" (como una llamada de red),
+  // el navegador la bloquea en silencio. Por eso se solicita antes de cualquier otra
+  // validación, y se revierte más abajo si el alumno termina bloqueado.
+  if(USAR_PANTALLA_COMPLETA && PANTALLA_COMPLETA_SOPORTADA){
+    document.documentElement.requestFullscreen().catch(()=>{ /* el navegador del alumno no lo permitió; seguimos sin pantalla completa */ });
+  }
+
+  const horario = HORARIOS_GRUPOS[grupo];
+  const ahora = new Date();
+  const apertura = new Date(horario.apertura);
+  const cierre = new Date(horario.cierre);
+
+  if(ahora < apertura){
+    mostrarBloqueo(`El examen para el grupo ${grupo} abrirá el ${formatearFecha(horario.apertura)}. Vuelve a intentarlo en ese horario.`);
+    salirDePantallaCompleta();
+    return;
+  }
+  if(ahora > cierre){
+    mostrarBloqueo(`El examen para el grupo ${grupo} cerró el ${formatearFecha(horario.cierre)}. Contacta a tu profesor si tienes dudas.`);
+    salirDePantallaCompleta();
+    return;
+  }
+
+  const clave = claveAlumno(nombre, grupo);
+  const guardado = localStorage.getItem(clave);
+
+  if(guardado){
+    const sesionGuardada = JSON.parse(guardado);
+    if(sesionGuardada.estado === "completado"){
+      claveSesionActual = clave;
+      mostrarBloqueo("Este examen ya fue presentado con este nombre y grupo en este dispositivo. No es posible volver a presentarlo.", true);
+      salirDePantallaCompleta();
+      return;
+    }
+    // había un intento en progreso (por ejemplo, se cerró el navegador sin querer)
+    const limiteTiempo = Math.min(sesionGuardada.inicio + DURACION_MINUTOS*60000, cierre.getTime());
+    if(Date.now() < limiteTiempo){
+      claveSesionActual = clave;
+      sesionActual = sesionGuardada;
+      iniciarInterfazExamen(true);
+      return;
+    } else {
+      // el tiempo ya se venció mientras estaba cerrado: se entrega automáticamente
+      claveSesionActual = clave;
+      sesionActual = sesionGuardada;
+      entregarExamen(true);
+      salirDePantallaCompleta();
+      return;
+    }
+  }
+
+  // Verificación opcional en Google Sheets por si el alumno cambió de dispositivo.
+  cargando.classList.remove("oculto");
+  const yaPresentadoServidor = await verificarEnvioPrevio(nombre, grupo);
+  cargando.classList.add("oculto");
+  if(yaPresentadoServidor){
+    claveSesionActual = clave;
+    mostrarBloqueo("Según nuestros registros, ya presentaste este examen (posiblemente desde otro dispositivo). No es posible volver a presentarlo.", true);
+    salirDePantallaCompleta();
+    return;
+  }
+
+  claveSesionActual = clave;
+  sesionActual = {
+    nombre, grupo,
+    horarioApertura: horario.apertura,
+    horarioCierre: horario.cierre,
+    inicio: Date.now(),
+    respuestas: [],
+    ordenOpciones: generarOrdenOpciones(),
+    salidas: 0,
+    tiempoFueraTotal: 0,
+    eventosCopiarPegar: 0,
+    capturasDetectadas: 0,
+    cambiosVentanaDetectados: 0,
+    bitacora: [`${new Date().toLocaleTimeString("es-MX")} — Examen iniciado.`],
+    estado: "en_progreso"
+  };
+  guardarSesion();
+  iniciarInterfazExamen(false);
+});
+
+/* Genera, una sola vez por alumno, un orden aleatorio para las opciones de cada
+   pregunta (opción múltiple, Verdadero/Falso, relacionar y clasificar). Se guarda
+   en la sesión para que el orden no cambie si el alumno navega entre preguntas o
+   si recarga la página. Los valores guardados en las respuestas del alumno siguen
+   siendo el índice ORIGINAL de la opción, así que la calificación no cambia. */
+function generarOrdenOpciones(){
+  return EXAMEN.preguntas.map(pregunta=>{
+    if(pregunta.tipo === "seleccion" || pregunta.tipo === "multiple" || pregunta.tipo === "asociar"){
+      return mezclarIndices(pregunta.opciones.length);
+    }
+    return null; // "abierta", "abierta_multiple" y "graficar" no tienen opciones que mezclar
+  });
+}
+
+function mezclarIndices(cantidad){
+  const indices = Array.from({ length: cantidad }, (_, i) => i);
+  for(let i = indices.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+}
+
+/* Devuelve el orden mezclado de opciones para la pregunta "indice". Si la sesión
+   viene de antes de que existiera esta función (o el arreglo está incompleto por
+   cualquier motivo), genera el orden en ese momento y lo guarda, para que el
+   examen nunca se rompa por una sesión antigua. */
+function obtenerOrdenOpciones(indice, pregunta){
+  if(!Array.isArray(sesionActual.ordenOpciones)){
+    sesionActual.ordenOpciones = generarOrdenOpciones();
+    guardarSesion();
+  }
+  if(!Array.isArray(sesionActual.ordenOpciones[indice])){
+    const cantidad = (pregunta.tipo === "seleccion" || pregunta.tipo === "multiple" || pregunta.tipo === "asociar")
+      ? pregunta.opciones.length : 0;
+    sesionActual.ordenOpciones[indice] = cantidad > 0 ? mezclarIndices(cantidad) : null;
+    guardarSesion();
+  }
+  return sesionActual.ordenOpciones[indice];
+}
+
+function salirDePantallaCompleta(){
+  if(document.fullscreenElement){
+    document.exitFullscreen().catch(()=>{});
+  }
+}
+
+/* ---------- render y lógica del examen ---------- */
+function iniciarInterfazExamen(reanudando){
+  examenActivo = true;
+  const datos = EXAMEN;
+
+  document.getElementById("info-alumno").textContent = `${sesionActual.nombre} — Grupo ${sesionActual.grupo}${reanudando ? " (intento reanudado)" : ""}`;
+  actualizarContadorVisible();
+
+  const lecturaDiv = document.getElementById("lectura-contenedor");
+  lecturaDiv.innerHTML = "";
+  if(datos.lectura && datos.lectura.trim() !== ""){
+    const bloque = document.createElement("div");
+    bloque.className = "lectura";
+    bloque.textContent = datos.lectura;
+    lecturaDiv.appendChild(bloque);
+  }
+
+  mostrarSoloVista("vista-examen");
+
+  if(USAR_PANTALLA_COMPLETA && PANTALLA_COMPLETA_SOPORTADA){
+    document.documentElement.requestFullscreen().catch(()=>{ /* si el navegador lo impide, seguimos sin pantalla completa */ });
+  }
+
+  const limiteTiempo = Math.min(sesionActual.inicio + DURACION_MINUTOS*60000, new Date(sesionActual.horarioCierre).getTime());
+  iniciarCronometro(limiteTiempo);
+  iniciarMarcaAgua();
+
+  if(typeof sesionActual.preguntaActual !== "number") sesionActual.preguntaActual = 0;
+  renderPreguntaActual();
+}
+
+/* ---------- navegación libre entre preguntas ---------- */
+function renderPreguntaActual(){
+  const datos = EXAMEN;
+  const total = datos.preguntas.length;
+  const indice = sesionActual.preguntaActual;
+  const pregunta = datos.preguntas[indice];
+  const ordenOpciones = obtenerOrdenOpciones(indice, pregunta);
+
+  document.getElementById("progreso-texto").textContent = `Pregunta ${indice+1} de ${total}`;
+  document.getElementById("barra-progreso-relleno").style.width = `${Math.round(((indice+1)/total)*100)}%`;
+  document.getElementById("pregunta-error").classList.add("oculto");
+
+  renderNavegadorPreguntas();
+
+  const contenedor = document.getElementById("pregunta-actual-contenedor");
+  contenedor.innerHTML = "";
+
+  const div = document.createElement("div");
+  div.className = "pregunta";
+
+  if(pregunta.imagen){
+    const img = document.createElement("img");
+    img.src = pregunta.imagen;
+    img.className = "imagen-pregunta";
+    img.alt = "Imagen de la pregunta";
+    div.appendChild(img);
+  }
+
+  const p = document.createElement("p");
+  p.className = "enunciado";
+  p.textContent = `${indice+1}. ${pregunta.pregunta}`;
+  div.appendChild(p);
+
+  if(pregunta.tipo === "asociar"){
+    if(!Array.isArray(sesionActual.respuestas[indice])){
+      sesionActual.respuestas[indice] = new Array(pregunta.items.length).fill(undefined);
+    }
+    pregunta.items.forEach((textoItem, indiceItem)=>{
+      const fila = document.createElement("div");
+      fila.className = "opcion";
+      fila.style.display = "block";
+      const etiqueta = document.createElement("div");
+      etiqueta.style.fontWeight = "600";
+      etiqueta.style.marginBottom = "4px";
+      etiqueta.textContent = textoItem;
+      fila.appendChild(etiqueta);
+      const select = document.createElement("select");
+      const opcionVacia = document.createElement("option");
+      opcionVacia.value = "";
+      opcionVacia.textContent = "-- Selecciona una opción --";
+      select.appendChild(opcionVacia);
+      pregunta.opciones.forEach((_, i)=>{
+        const indiceOpcion = ordenOpciones[i];
+        const textoOpcion = pregunta.opciones[indiceOpcion];
+        const opt = document.createElement("option");
+        opt.value = indiceOpcion;
+        opt.textContent = textoOpcion;
+        if(sesionActual.respuestas[indice][indiceItem] === indiceOpcion) opt.selected = true;
+        select.appendChild(opt);
+      });
+      select.addEventListener("change", ()=>{
+        sesionActual.respuestas[indice][indiceItem] = select.value === "" ? undefined : Number(select.value);
+        guardarSesion();
+        renderNavegadorPreguntas();
+      });
+      fila.appendChild(select);
+      div.appendChild(fila);
+    });
+  } else if(pregunta.tipo === "abierta" || pregunta.tipo === "graficar"){
+    if(pregunta.tipo === "graficar"){
+      const avisoGrafica = document.createElement("p");
+      avisoGrafica.className = "aviso-manual";
+      avisoGrafica.textContent = "📐 Resuelve y traza esta gráfica en tu hoja de cuadrícula. En el cuadro de abajo describe los elementos que incluiste (ejes, escala, puntos, rectas, ángulos) para que tu profesor(a) los revise junto con tu hoja.";
+      div.appendChild(avisoGrafica);
+    }
+    const area = document.createElement("textarea");
+    area.className = "respuesta-abierta";
+    area.rows = 6;
+    area.placeholder = "Escribe tu respuesta aquí…";
+    area.value = (typeof sesionActual.respuestas[indice] === "string") ? sesionActual.respuestas[indice] : "";
+    area.addEventListener("input", ()=>{
+      sesionActual.respuestas[indice] = area.value;
+      guardarSesion();
+      renderNavegadorPreguntas();
+    });
+    div.appendChild(area);
+    const nota = document.createElement("p");
+    nota.className = "ayuda";
+    nota.textContent = `Esta pregunta vale ${pregunta.puntosMaximos} punto(s) y será calificada manualmente por tu profesor(a).`;
+    div.appendChild(nota);
+  } else if(pregunta.tipo === "multiple"){
+    if(!Array.isArray(sesionActual.respuestas[indice])){
+      sesionActual.respuestas[indice] = [];
+    }
+    pregunta.opciones.forEach((_, i)=>{
+      const indiceOpcion = ordenOpciones[i];
+      const opcionTexto = pregunta.opciones[indiceOpcion];
+      const fila = document.createElement("label");
+      fila.className = "opcion";
+      const casilla = document.createElement("input");
+      casilla.type = "checkbox";
+      casilla.value = indiceOpcion;
+      casilla.checked = sesionActual.respuestas[indice].includes(indiceOpcion);
+      casilla.addEventListener("change", ()=>{
+        const actuales = sesionActual.respuestas[indice];
+        if(casilla.checked){
+          if(!actuales.includes(indiceOpcion)) actuales.push(indiceOpcion);
+        } else {
+          sesionActual.respuestas[indice] = actuales.filter(v => v !== indiceOpcion);
+        }
+        guardarSesion();
+        renderNavegadorPreguntas();
+      });
+      fila.appendChild(casilla);
+      const span = document.createElement("span");
+      span.textContent = opcionTexto;
+      fila.appendChild(span);
+      div.appendChild(fila);
+    });
+    const nota = document.createElement("p");
+    nota.className = "ayuda";
+    nota.textContent = "Esta pregunta puede tener más de una respuesta correcta: marca todas las que apliquen.";
+    div.appendChild(nota);
+  } else if(pregunta.tipo === "abierta_multiple"){
+    if(!Array.isArray(sesionActual.respuestas[indice])){
+      sesionActual.respuestas[indice] = new Array(pregunta.subpreguntas.length).fill("");
+    }
+    pregunta.subpreguntas.forEach((textoSub, indiceSub)=>{
+      const bloque = document.createElement("div");
+      bloque.className = "subpregunta-abierta";
+      const etiqueta = document.createElement("label");
+      etiqueta.textContent = textoSub;
+      bloque.appendChild(etiqueta);
+      const area = document.createElement("textarea");
+      area.className = "respuesta-abierta";
+      area.rows = 3;
+      area.placeholder = "Escribe tu respuesta aquí…";
+      area.value = sesionActual.respuestas[indice][indiceSub] || "";
+      area.addEventListener("input", ()=>{
+        sesionActual.respuestas[indice][indiceSub] = area.value;
+        guardarSesion();
+        renderNavegadorPreguntas();
+      });
+      bloque.appendChild(area);
+      div.appendChild(bloque);
+    });
+    const nota = document.createElement("p");
+    nota.className = "ayuda";
+    nota.textContent = `Este caso vale ${pregunta.puntosMaximos} punto(s) en total y será calificado manualmente por tu profesor(a).`;
+    div.appendChild(nota);
+  } else {
+    pregunta.opciones.forEach((_, i)=>{
+      const indiceOpcion = ordenOpciones[i];
+      const opcionTexto = pregunta.opciones[indiceOpcion];
+      const fila = document.createElement("label");
+      fila.className = "opcion";
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = `pregunta_actual`;
+      radio.value = indiceOpcion;
+      if(sesionActual.respuestas[indice] === indiceOpcion) radio.checked = true;
+      radio.addEventListener("change", ()=>{
+        sesionActual.respuestas[indice] = indiceOpcion;
+        guardarSesion();
+        renderNavegadorPreguntas();
+      });
+      fila.appendChild(radio);
+      const span = document.createElement("span");
+      span.textContent = opcionTexto;
+      fila.appendChild(span);
+      div.appendChild(fila);
+    });
+  }
+  contenedor.appendChild(div);
+
+  document.getElementById("btn-anterior").disabled = (indice === 0);
+  document.getElementById("btn-siguiente").disabled = (indice === total - 1);
+}
+
+function renderNavegadorPreguntas(){
+  const datos = EXAMEN;
+  const contenedor = document.getElementById("navegador-preguntas");
+  contenedor.innerHTML = "";
+  datos.preguntas.forEach((pregunta, indice)=>{
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "nav-pregunta-btn";
+    boton.textContent = indice + 1;
+    if(indice === sesionActual.preguntaActual) boton.classList.add("actual");
+    else if(estaCompleta(pregunta, sesionActual.respuestas[indice])) boton.classList.add("respondida");
+    boton.title = `Ir a la pregunta ${indice+1}`;
+    boton.addEventListener("click", ()=>{
+      sesionActual.preguntaActual = indice;
+      guardarSesion();
+      renderPreguntaActual();
+    });
+    contenedor.appendChild(boton);
+  });
+}
+
+function estaCompleta(pregunta, respuesta){
+  if(pregunta.tipo === "asociar"){
+    if(!Array.isArray(respuesta) || respuesta.length !== pregunta.items.length) return false;
+    return respuesta.every(valor => valor !== undefined && valor !== null && valor !== "");
+  }
+  if(pregunta.tipo === "abierta" || pregunta.tipo === "graficar"){
+    return typeof respuesta === "string" && respuesta.trim() !== "";
+  }
+  if(pregunta.tipo === "abierta_multiple"){
+    if(!Array.isArray(respuesta) || respuesta.length !== pregunta.subpreguntas.length) return false;
+    return respuesta.every(valor => typeof valor === "string" && valor.trim() !== "");
+  }
+  if(pregunta.tipo === "multiple"){
+    return Array.isArray(respuesta) && respuesta.length > 0;
+  }
+  return respuesta !== undefined && respuesta !== null;
+}
+
+document.getElementById("btn-anterior").addEventListener("click", ()=>{
+  if(sesionActual.preguntaActual > 0){
+    sesionActual.preguntaActual--;
+    guardarSesion();
+    renderPreguntaActual();
+  }
+});
+
+document.getElementById("btn-siguiente").addEventListener("click", ()=>{
+  const total = EXAMEN.preguntas.length;
+  if(sesionActual.preguntaActual < total - 1){
+    sesionActual.preguntaActual++;
+    guardarSesion();
+    renderPreguntaActual();
+  }
+});
+
+document.getElementById("btn-entregar").addEventListener("click", ()=>{
+  const datos = EXAMEN;
+  const sinResponder = [];
+  datos.preguntas.forEach((pregunta, indice)=>{
+    if(!estaCompleta(pregunta, sesionActual.respuestas[indice])) sinResponder.push(indice+1);
+  });
+
+  let mensaje = "¿Seguro que quieres entregar el examen? No podrás modificarlo después.";
+  if(sinResponder.length > 0){
+    mensaje = `Tienes ${sinResponder.length} pregunta(s) sin responder (número ${sinResponder.join(", ")}). ` +
+      `¿Quieres entregar de todas formas? Si cancelas, puedes usar el panel de números para regresar a completarlas.`;
+  }
+
+  if(confirm(mensaje)){
+    entregarExamen(false);
+  }
+});
+
+/* ---------- marca de agua con los datos del alumno (disuasivo/rastreo de capturas) ---------- */
+let intervaloMarcaAgua = null;
+function textoMarcaAgua(){
+  const hora = new Date().toLocaleString("es-MX", {dateStyle:"short", timeStyle:"medium"});
+  return `${sesionActual.nombre} · Grupo ${sesionActual.grupo} · ${hora}`;
+}
+function dibujarMarcaAgua(){
+  const contenedor = document.getElementById("marca-agua");
+  const texto = textoMarcaAgua();
+  contenedor.innerHTML = "";
+  for(let i=0; i<40; i++){
+    const span = document.createElement("span");
+    span.textContent = texto;
+    contenedor.appendChild(span);
+  }
+}
+function iniciarMarcaAgua(){
+  dibujarMarcaAgua();
+  if(intervaloMarcaAgua) clearInterval(intervaloMarcaAgua);
+  // Se vuelve a dibujar cada 20 segundos para que la hora quede siempre visible.
+  intervaloMarcaAgua = setInterval(dibujarMarcaAgua, 20000);
+}
+function detenerMarcaAgua(){
+  if(intervaloMarcaAgua) clearInterval(intervaloMarcaAgua);
+  document.getElementById("marca-agua").innerHTML = "";
+}
+
+function iniciarCronometro(limiteTiempo){
+  if(intervaloCronometro) clearInterval(intervaloCronometro);
+  function actualizar(){
+    const restanteMs = limiteTiempo - Date.now();
+    const elemento = document.getElementById("cronometro");
+    if(restanteMs <= 0){
+      elemento.textContent = "0:00";
+      clearInterval(intervaloCronometro);
+      entregarExamen(true);
+      return;
+    }
+    elemento.textContent = formatearDuracionMs(restanteMs);
+  }
+  actualizar();
+  intervaloCronometro = setInterval(actualizar, 1000);
+}
+
+/* ---------- sistema antifraude: cambios de pestaña/ventana ---------- */
+document.addEventListener("visibilitychange", ()=>{
+  if(!examenActivo) return;
+  if(document.hidden){
+    horaOculto = Date.now();
+  } else if(horaOculto){
+    const segundosFuera = Math.round((Date.now() - horaOculto)/1000);
+    horaOculto = null;
+    if(segundosFuera >= SEGUNDOS_SALIDA_SIGNIFICATIVA){
+      sesionActual.salidas++;
+      sesionActual.tiempoFueraTotal += segundosFuera;
+      registrarEvento(`Salida de la pestaña #${sesionActual.salidas}: ${segundosFuera} segundos fuera.`);
+      // Advertencia visible: se muestra apenas el alumno regresa (mientras estuvo
+      // fuera no había forma de mostrarle nada, ya que no estaba viendo la página).
+      setTimeout(()=>{
+        alert(`⚠️ Se detectó que saliste de esta pestaña (salida #${sesionActual.salidas}, ${segundosFuera} segundos fuera).\n\nEsto ha quedado registrado y será revisado por tu profesor.`);
+      }, 150);
+    }
+  }
+});
+
+/* ---------- sistema antifraude: salir de pantalla completa ---------- */
+document.addEventListener("fullscreenchange", ()=>{
+  if(!examenActivo) return;
+
+  if(document.fullscreenElement){
+    // Confirmado: el examen SÍ está en pantalla completa en este navegador.
+    pantallaCompletaFueActivada = true;
+    if(horaFueraPantallaCompleta){
+      const segundosFuera = Math.round((Date.now() - horaFueraPantallaCompleta)/1000);
+      sesionActual.tiempoFueraTotal += segundosFuera;
+      horaFueraPantallaCompleta = null;
+      registrarEvento(`Regresó a pantalla completa después de ${segundosFuera} segundos fuera.`);
+    }
+    document.getElementById("bloqueo-pantalla-completa").classList.add("oculto");
+    return;
+  }
+
+  // document.fullscreenElement es null: ¿de verdad salió de pantalla completa,
+  // o es un navegador (ej. Safari en iPhone) que nunca llegó a activarla y
+  // solo disparó un evento fantasma? Si nunca se activó de verdad, lo ignoramos
+  // por completo: no contamos una salida ni bloqueamos al alumno.
+  if(!pantallaCompletaFueActivada) return;
+
+  horaFueraPantallaCompleta = Date.now();
+  sesionActual.salidas++;
+  registrarEvento(`Salida de pantalla completa #${sesionActual.salidas}.`);
+  if(USAR_PANTALLA_COMPLETA){
+    document.getElementById("bloqueo-pantalla-completa").classList.remove("oculto");
+  }
+});
+document.getElementById("btn-volver-pantalla-completa").addEventListener("click", ()=>{
+  // Este clic SÍ cuenta como acción directa del alumno, así que el navegador
+  // permite volver a pedir pantalla completa desde aquí.
+  document.documentElement.requestFullscreen().catch(()=>{});
+});
+
+/* ---------- sistema antifraude: copiar / cortar / pegar ---------- */
+["copy","cut","paste"].forEach(tipoEvento=>{
+  document.addEventListener(tipoEvento, ()=>{
+    if(!examenActivo) return;
+    sesionActual.eventosCopiarPegar++;
+    registrarEvento(`Evento sospechoso detectado: ${tipoEvento}.`);
+  });
+});
+
+/* ---------- sistema antifraude: tecla de captura de pantalla ---------- */
+/* AVISO IMPORTANTE Y HONESTO: en la mayoría de navegadores (especialmente Chrome
+   en Windows), el sistema operativo intercepta la tecla "Impr Pant" ANTES de que
+   llegue a la página — es decir, JavaScript nunca se entera de que se presionó.
+   Esto no es una falla de este código: ningún sitio web puede evitarlo. Por eso
+   la marca de agua (ver iniciarMarcaAgua) sigue siendo la protección real: si el
+   alumno logra tomar una captura o foto, esa imagen queda identificada con su
+   nombre. Lo de aquí abajo es un extra que atrapa el evento SOLO en los casos
+   (algunos navegadores/versiones) donde sí llega a alcanzar a la página. */
+let ultimaCapturaDetectadaMs = 0;
+function posibleCaptura(evento){
+  if(!examenActivo) return;
+
+  const esImprPant = evento.key === "PrintScreen";
+  // Windows + Shift + S (Recorte y anotación / Snipping). El navegador rara vez
+  // recibe la tecla Windows como modificador confiable, por eso solo exigimos
+  // Shift + S. Puede dar algún falso positivo si el alumno escribe una "S"
+  // mayúscula normal, pero en un examen de opción múltiple eso no ocurre.
+  const esSnipWindows = evento.shiftKey && (evento.key === "S" || evento.key === "s");
+  // macOS: Cmd+Shift+3 (pantalla completa), Cmd+Shift+4 (selección), Cmd+Shift+5 (barra de captura/grabación).
+  const esCapturaMac = evento.metaKey && evento.shiftKey && ["3","4","5"].includes(evento.key);
+
+  if(!(esImprPant || esSnipWindows || esCapturaMac)) return;
+
+  // Evita contar el mismo intento dos veces si el navegador dispara keydown Y keyup,
+  // o si varias teclas de la misma combinación disparan eventos por separado.
+  const ahora = Date.now();
+  if(ahora - ultimaCapturaDetectadaMs < 1000) return;
+  ultimaCapturaDetectadaMs = ahora;
+
+  sesionActual.capturasDetectadas = (sesionActual.capturasDetectadas || 0) + 1;
+  const combinacion = esImprPant ? "Impr Pant" : esSnipWindows ? "Win+Shift+S" : `Cmd+Shift+${evento.key}`;
+  registrarEvento(`Posible intento de captura de pantalla detectado (combinación: ${combinacion}).`);
+}
+document.addEventListener("keydown", posibleCaptura);
+document.addEventListener("keyup", posibleCaptura);
+
+/* ---------- sistema antifraude: intento de cambiar de aplicación/ventana (Alt+Tab, Cmd+Tab) ---------- */
+/* MISMO AVISO HONESTO QUE ARRIBA: en la gran mayoría de sistemas operativos, el propio
+   sistema operativo intercepta Alt+Tab (Windows/Linux) o Cmd+Tab (macOS) para mostrar el
+   selector de aplicaciones ANTES de que la tecla "Tab" llegue al navegador — es decir,
+   muchas veces JavaScript nunca se entera. Por eso la protección real contra cambios de
+   aplicación sigue siendo "visibilitychange" y "fullscreenchange" (arriba): en cuanto el
+   alumno realmente cambia de aplicación, la pestaña se oculta o el examen sale de pantalla
+   completa, y eso YA se cuenta como salida con el tiempo exacto que estuvo fuera. Lo de aquí
+   abajo es una capa adicional que solo atrapa el intento en los casos (algunos
+   navegadores/atajos) donde la combinación sí alcanza a disparar el evento en la página. */
+let ultimoCambioVentanaDetectadoMs = 0;
+function posibleCambioVentana(evento){
+  if(!examenActivo) return;
+
+  // Windows / Linux: Alt+Tab (cambiar de aplicación) y Alt+Esc (ciclar ventanas).
+  const esAltTabWindows = evento.altKey && (evento.key === "Tab" || evento.key === "Escape");
+  // macOS: Cmd+Tab (cambiar de aplicación) y Cmd+` (ciclar ventanas de la misma aplicación).
+  const esCmdTabMac = evento.metaKey && (evento.key === "Tab" || evento.key === "`");
+
+  if(!(esAltTabWindows || esCmdTabMac)) return;
+
+  // Evita contar el mismo intento varias veces si el navegador dispara varios eventos
+  // seguidos para la misma combinación.
+  const ahora = Date.now();
+  if(ahora - ultimoCambioVentanaDetectadoMs < 1000) return;
+  ultimoCambioVentanaDetectadoMs = ahora;
+
+  sesionActual.cambiosVentanaDetectados = (sesionActual.cambiosVentanaDetectados || 0) + 1;
+  const combinacion = esAltTabWindows
+    ? (evento.key === "Tab" ? "Alt+Tab" : "Alt+Esc")
+    : (evento.key === "Tab" ? "Cmd+Tab" : "Cmd+`");
+  registrarEvento(`Posible intento de cambio de aplicación/ventana detectado (combinación: ${combinacion}).`);
+}
+document.addEventListener("keydown", posibleCambioVentana);
+
+/* ---------- calificación y entrega ---------- */
+function entregarExamen(autoEntregado){
+  if(!examenActivo) { // ya se había entregado (por ejemplo, el cronómetro llegó a 0 dos veces)
+    return;
+  }
+  examenActivo = false;
+  if(intervaloCronometro) clearInterval(intervaloCronometro);
+  detenerMarcaAgua();
+  document.getElementById("bloqueo-pantalla-completa").classList.add("oculto");
+
+  const datos = EXAMEN;
+  let puntosAutoObtenidos = 0;
+  let puntosAutoPosibles = 0;
+  let puntosManualesPosibles = 0;
+  datos.preguntas.forEach((pregunta, indice)=>{
+    const respuesta = sesionActual.respuestas[indice];
+    if(pregunta.tipo === "asociar"){
+      puntosAutoPosibles += pregunta.items.length;
+      pregunta.items.forEach((_, indiceItem)=>{
+        if(Array.isArray(respuesta) && respuesta[indiceItem] === pregunta.correctas[indiceItem]) puntosAutoObtenidos++;
+      });
+    } else if(pregunta.tipo === "abierta" || pregunta.tipo === "abierta_multiple" || pregunta.tipo === "graficar"){
+      puntosManualesPosibles += pregunta.puntosMaximos;
+    } else if(pregunta.tipo === "multiple"){
+      puntosAutoPosibles += 1;
+      const marcadas = Array.isArray(respuesta) ? [...respuesta].sort((a,b)=>a-b) : [];
+      const correctas = [...pregunta.correctas].sort((a,b)=>a-b);
+      const coincide = marcadas.length === correctas.length && marcadas.every((v,i) => v === correctas[i]);
+      if(coincide) puntosAutoObtenidos++;
+    } else {
+      puntosAutoPosibles += 1;
+      if(respuesta === pregunta.correcta) puntosAutoObtenidos++;
+    }
+  });
+  const puntosPosiblesTotales = puntosAutoPosibles + puntosManualesPosibles;
+
+  sesionActual.estado = "completado";
+  sesionActual.horaEntrega = Date.now();
+  sesionActual.autoEntregado = autoEntregado;
+  sesionActual.correctas = puntosAutoObtenidos;
+  sesionActual.total = puntosAutoPosibles;
+  sesionActual.puntosManualesPosibles = puntosManualesPosibles;
+  sesionActual.puntosPosiblesTotales = puntosPosiblesTotales;
+  sesionActual.calificacion = null; // pendiente: hay preguntas de calificación manual
+  registrarEvento(autoEntregado ? "Examen entregado automáticamente (se acabó el tiempo)." : "Examen entregado por el alumno.");
+  guardarSesion();
+
+  // IMPORTANTE: "examenActivo" ya se puso en false al inicio de esta función (arriba).
+  // Los listeners de "fullscreenchange" y "visibilitychange" revisan ese valor y se
+  // detienen de inmediato si es false, así que salir de pantalla completa AQUÍ (al
+  // entregar) nunca se cuenta como una salida sospechosa: el examen ya terminó.
+  if(document.fullscreenElement){
+    document.exitFullscreen().catch(()=>{});
+  }
+
+  document.getElementById("texto-calificacion").textContent = `${puntosAutoObtenidos} / ${puntosAutoPosibles} pts automáticos`;
+  document.getElementById("texto-detalle-resultado").innerHTML =
+    `Puntos automáticos obtenidos (opción múltiple, selección múltiple, Verdadero/Falso y relacionar): <b>${puntosAutoObtenidos} de ${puntosAutoPosibles}</b>.<br>` +
+    `Puntos pendientes de revisión manual (preguntas abiertas y de graficación): <b>${puntosManualesPosibles}</b> (tu profesor(a) los asignará después de leer tus respuestas y revisar tus gráficas en papel).<br>` +
+    `Puntaje total posible del examen: ${puntosPosiblesTotales} puntos.<br>` +
+    `Tiempo usado: ${formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio)}. ` +
+    `Salidas detectadas (pestaña o pantalla completa): ${sesionActual.salidas || 0}.`;
+  document.getElementById("aviso-calificacion-pendiente").classList.remove("oculto");
+  mostrarSoloVista("vista-resultados");
+
+  enviarAGoogleSheets();
+}
+
+document.getElementById("btn-reenviar").addEventListener("click", enviarAGoogleSheets);
+
+/* ---------- generación del comprobante en PDF (no editable) ---------- */
+const PDF_MARGEN = 40;
+let pdfDoc = null;
+let pdfCursorY = PDF_MARGEN;
+let pdfAnchoUtil = 0;
+
+function pdfVerificarEspacio(alturaNecesaria){
+  const alturaPagina = pdfDoc.internal.pageSize.getHeight();
+  if(pdfCursorY + alturaNecesaria > alturaPagina - PDF_MARGEN){
+    pdfDoc.addPage();
+    pdfCursorY = PDF_MARGEN;
+  }
+}
+
+function pdfEscribirParrafo(texto, opciones = {}){
+  const tamano = opciones.tamano || 10;
+  const negrita = !!opciones.negrita;
+  const interlineado = opciones.interlineado || Math.round(tamano * 1.35);
+  const espacioExtra = opciones.espacioDespues || 0;
+  pdfDoc.setFont("helvetica", negrita ? "bold" : "normal");
+  pdfDoc.setFontSize(tamano);
+  const lineas = pdfDoc.splitTextToSize(String(texto), pdfAnchoUtil);
+  lineas.forEach(linea=>{
+    pdfVerificarEspacio(interlineado);
+    pdfDoc.text(linea, PDF_MARGEN, pdfCursorY);
+    pdfCursorY += interlineado;
+  });
+  pdfCursorY += espacioExtra;
+}
+
+function pdfAgregarLinea(){
+  pdfVerificarEspacio(10);
+  pdfDoc.setDrawColor(210,213,220);
+  pdfDoc.line(PDF_MARGEN, pdfCursorY, PDF_MARGEN + pdfAnchoUtil, pdfCursorY);
+  pdfCursorY += 12;
+}
+
+function pdfAgregarPiesDePagina(){
+  const totalPaginas = pdfDoc.internal.getNumberOfPages();
+  for(let i = 1; i <= totalPaginas; i++){
+    pdfDoc.setPage(i);
+    pdfDoc.setFont("helvetica", "normal");
+    pdfDoc.setFontSize(8);
+    pdfDoc.setTextColor(120);
+    pdfDoc.text(
+      `${sesionActual.nombre} · Grupo ${sesionActual.grupo} · Página ${i} de ${totalPaginas}`,
+      PDF_MARGEN, pdfDoc.internal.pageSize.getHeight() - 20
+    );
+    pdfDoc.setTextColor(0);
+  }
+}
+
+function generarComprobantePDF(){
+  const { jsPDF } = window.jspdf;
+  pdfDoc = new jsPDF({ unit: "pt", format: "letter" });
+  pdfCursorY = PDF_MARGEN;
+  pdfAnchoUtil = pdfDoc.internal.pageSize.getWidth() - PDF_MARGEN * 2;
+
+  pdfEscribirParrafo(TITULO_EXAMEN, { tamano: 14, negrita: true });
+  pdfEscribirParrafo(`Comprobante de entrega — generado el ${new Date().toLocaleString("es-MX")}`, { tamano: 9, espacioDespues: 8 });
+
+  pdfEscribirParrafo(`Alumno: ${sesionActual.nombre}`, { tamano: 11, negrita: true });
+  pdfEscribirParrafo(`Grupo: ${sesionActual.grupo}`, { tamano: 11 });
+  pdfEscribirParrafo(`Hora de inicio: ${formatearFecha(sesionActual.inicio)}`, { tamano: 10 });
+  pdfEscribirParrafo(`Hora de entrega: ${formatearFecha(sesionActual.horaEntrega)}`, { tamano: 10 });
+  pdfEscribirParrafo(`Tiempo usado: ${formatearDuracionMs(sesionActual.horaEntrega - sesionActual.inicio)}`, { tamano: 10 });
+  pdfEscribirParrafo(`¿Entregado automáticamente por tiempo agotado?: ${sesionActual.autoEntregado ? "Sí" : "No"}`, { tamano: 10, espacioDespues: 6 });
+  pdfAgregarLinea();
+
+  pdfEscribirParrafo("Resultado", { tamano: 12, negrita: true });
+  pdfEscribirParrafo(`Puntos automáticos obtenidos: ${sesionActual.correctas} de ${sesionActual.total}`, { tamano: 10 });
+  pdfEscribirParrafo(`Puntos pendientes de revisión manual (preguntas abiertas): ${sesionActual.puntosManualesPosibles}`, { tamano: 10 });
+  pdfEscribirParrafo(`Puntaje total posible del examen: ${sesionActual.puntosPosiblesTotales}`, { tamano: 10 });
+  pdfEscribirParrafo("Tu calificación final está pendiente hasta que tu profesor(a) revise y asigne los puntos de las preguntas abiertas.", { tamano: 9, espacioDespues: 6 });
+  pdfAgregarLinea();
+
+  pdfEscribirParrafo("Integridad del examen", { tamano: 12, negrita: true });
+  pdfEscribirParrafo(`Salidas detectadas (pestaña o pantalla completa): ${sesionActual.salidas || 0}`, { tamano: 10 });
+  pdfEscribirParrafo(`Tiempo fuera de la pestaña/pantalla completa: ${sesionActual.tiempoFueraTotal || 0} segundos`, { tamano: 10 });
+  pdfEscribirParrafo(`Eventos de copiar/pegar detectados: ${sesionActual.eventosCopiarPegar || 0}`, { tamano: 10 });
+  pdfEscribirParrafo(`Intentos de captura de pantalla detectados: ${sesionActual.capturasDetectadas || 0}`, { tamano: 10 });
+  pdfEscribirParrafo(`Intentos de cambio de aplicación/ventana detectados (Alt+Tab, Cmd+Tab): ${sesionActual.cambiosVentanaDetectados || 0}`, { tamano: 10 });
+  pdfEscribirParrafo(`Estado: ${calcularEstado(sesionActual)}`, { tamano: 10, espacioDespues: 6 });
+  pdfAgregarLinea();
+
+  pdfEscribirParrafo("Tus respuestas", { tamano: 12, negrita: true, espacioDespues: 4 });
+
+  EXAMEN.preguntas.forEach((pregunta, indice)=>{
+    pdfVerificarEspacio(30);
+    pdfEscribirParrafo(`${indice+1}. ${pregunta.pregunta}`, { tamano: 10, negrita: true });
+
+    if(pregunta.imagen){
+      const anchoImg = 170;
+      let altoImg = 100;
+      try{
+        const propiedades = pdfDoc.getImageProperties(pregunta.imagen);
+        altoImg = (propiedades.height * anchoImg) / propiedades.width;
+      }catch(err){ /* si por alguna razón no se puede leer, se usa un alto por defecto */ }
+      pdfVerificarEspacio(altoImg + 6);
+      pdfDoc.addImage(pregunta.imagen, "JPEG", PDF_MARGEN, pdfCursorY, anchoImg, altoImg);
+      pdfCursorY += altoImg + 6;
+    }
+
+    const respuesta = sesionActual.respuestas[indice];
+
+    if(pregunta.tipo === "asociar"){
+      pregunta.items.forEach((item, i)=>{
+        const seleccion = (Array.isArray(respuesta) && respuesta[i] !== undefined && respuesta[i] !== null)
+          ? pregunta.opciones[respuesta[i]] : "(sin responder)";
+        pdfEscribirParrafo(`• ${item} → ${seleccion}`, { tamano: 9.5 });
+      });
+    } else if(pregunta.tipo === "abierta" || pregunta.tipo === "graficar"){
+      const etiqueta = pregunta.tipo === "graficar" ? "Descripción de tu gráfica" : "Respuesta";
+      const texto = (typeof respuesta === "string" && respuesta.trim() !== "") ? respuesta.trim() : "(sin responder)";
+      pdfEscribirParrafo(`${etiqueta}: ${texto}`, { tamano: 9.5 });
+    } else if(pregunta.tipo === "abierta_multiple"){
+      pregunta.subpreguntas.forEach((sub, i)=>{
+        const texto = (Array.isArray(respuesta) && respuesta[i] && respuesta[i].trim() !== "") ? respuesta[i].trim() : "(sin responder)";
+        pdfEscribirParrafo(sub, { tamano: 9.5, negrita: true });
+        pdfEscribirParrafo(`Respuesta: ${texto}`, { tamano: 9.5 });
+      });
+    } else if(pregunta.tipo === "multiple"){
+      const seleccionadas = Array.isArray(respuesta) && respuesta.length > 0
+        ? respuesta.map(i => pregunta.opciones[i]).join("; ")
+        : "(sin responder)";
+      pdfEscribirParrafo(`Tus respuestas: ${seleccionadas}`, { tamano: 9.5 });
+    } else {
+      const seleccion = (respuesta !== undefined && respuesta !== null) ? pregunta.opciones[respuesta] : "(sin responder)";
+      pdfEscribirParrafo(`Tu respuesta: ${seleccion}`, { tamano: 9.5 });
+    }
+    pdfCursorY += 8;
+  });
+
+  pdfAgregarPiesDePagina();
+  pdfDoc.save(`Comprobante_${normalizar(sesionActual.nombre)}_${sesionActual.grupo}.pdf`);
+}
+
+document.getElementById("btn-descargar-pdf").addEventListener("click", generarComprobantePDF);
+</script>
+</body>
+</html>
